@@ -1,0 +1,14 @@
+<actions>
+    <action id="1" type="bash">
+        <content>echo "Hello World"</content>
+    </action>
+    <action id="2" type="reasoning" depends_on="1">
+        <content>Explain why we say hello world</content>
+    </action>
+    <action id="3" type="python" depends_on="2">
+        <content>
+with open('output.txt', 'w') as f:
+    f.write(outputs['2'])
+        </content>
+    </action>
+</actions>
