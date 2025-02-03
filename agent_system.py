@@ -50,27 +50,34 @@ class Agent:
                         response = client.chat.completions.create(
                             model="deepseek-chat",
                             messages=[
-                                {"role": "system", "content": """You are an AI agent that can execute tasks using different tools. 
-You MUST respond with XML-formatted actions using these tools:
+                                {"role": "system", "content": """You are an autonomous agent that solves tasks using XML-formatted actions. 
 
-Available Tools:
-1. <action type="bash"> - Execute bash commands
-2. <action type="python"> - Run Python code (use print() for output)
-3. <action type="reasoning"> - Get AI reasoning (uses same prompt format)
+Respond ONLY with valid XML using these actions:
+<bash> - Run terminal commands
+<python> - Execute Python code 
+<reasoning> - Perform analysis or break down steps
 
-XML Format:
+For "get reddit posts and save to JSON" you might respond:
 <actions>
-  <action id="unique_id" type="tool_type" depends_on="comma_separated_ids">
-    <content>Task content</content>
+  <action id="1" type="bash">
+    <content>pip install praw</content>
   </action>
-  ...
+  <action id="2" type="python" depends_on="1">
+    <content>
+    import praw, json
+    # ...reddit API code...
+    </content>
+  </action>
+  <action id="3" type="reasoning" depends_on="2">
+    <content>Analyze the collected data and summarize key trends</content>
+  </action>
 </actions>
 
 Guidelines:
-- Use depends_on to chain actions (wait for previous results)
-- Access outputs using outputs['previous_id']
-- Always validate commands before execution
-- Include multiple actions when needed"""},
+1. Always start with required setup steps
+2. Chain dependencies properly
+3. Validate commands before suggesting
+4. Prefer Python over bash for complex tasks"""},
                                 {"role": "user", "content": job.content}
                             ],
                             stream=False
@@ -86,23 +93,51 @@ class AgentCLI(Cmd):
     def __init__(self):
         super().__init__()
         self.agent = Agent()
+        self.initial_query = None
     
-    def do_submit(self, arg):
-        """Submit XML actions from a file: submit filename.xml"""
-        with open(arg, 'r') as f:
-            self.agent.add_job(f.read())
-        print(f"Added jobs from {arg}")
-    
-    def do_queue(self, arg):
-        """Show current job queue"""
+    def default(self, line):
+        """Handle natural language queries"""
+        if self.initial_query is None:
+            self.initial_query = line
+            # Create first reasoning job
+            self.agent.add_job(f"""<actions>
+                <action id="0" type="reasoning">
+                    <content>{line}</content>
+                </action>
+            </actions>""")
+            self.agent.process_queue()
+            self._handle_response()
+        else:
+            print("Continue with your query or 'exit' to quit")
+
+    def _handle_response(self):
+        """Process and display results"""
+        last_output = self.agent.outputs.get("0")
+        if last_output:
+            print("\n[Agent Response]")
+            print(last_output)
+            
+            # Check if agent generated new XML actions
+            try:
+                ET.fromstring(last_output)
+                self.agent.add_job(last_output)
+                print("\n[Executing Generated Plan]")
+                self.agent.process_queue()
+                self._show_results()
+            except ET.ParseError:
+                print("\n[Final Answer]")
+                print(last_output)
+        else:
+            print("No response received")
+
+    def _show_results(self):
+        """Display job outcomes"""
+        print("\n[Execution Results]")
         for job in self.agent.job_queue:
-            deps = ','.join(job.depends_on) if job.depends_on else 'none'
-            print(f"{job.id}: {job.type} (deps: {deps}) - {job.status}")
-    
-    def do_run(self, arg):
-        """Process the job queue"""
-        self.agent.process_queue()
-        print("Queue processing completed")
+            if job.status == 'completed':
+                print(f"- {job.id}: {self.agent.outputs.get(job.id, 'No output')}")
+            elif job.status.startswith('failed'):
+                print(f"- {job.id}: FAILED - {job.status.split(':')[-1].strip()}")
     
     def do_exit(self, arg):
         """Exit the CLI"""
