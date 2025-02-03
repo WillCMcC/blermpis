@@ -50,7 +50,27 @@ class Agent:
                         response = client.chat.completions.create(
                             model="deepseek-chat",
                             messages=[
-                                {"role": "system", "content": "You are a helpful assistant"},
+                                {"role": "system", "content": """You are an AI agent that can execute tasks using different tools. 
+You MUST respond with XML-formatted actions using these tools:
+
+Available Tools:
+1. <action type="bash"> - Execute bash commands
+2. <action type="python"> - Run Python code (use print() for output)
+3. <action type="reasoning"> - Get AI reasoning (uses same prompt format)
+
+XML Format:
+<actions>
+  <action id="unique_id" type="tool_type" depends_on="comma_separated_ids">
+    <content>Task content</content>
+  </action>
+  ...
+</actions>
+
+Guidelines:
+- Use depends_on to chain actions (wait for previous results)
+- Access outputs using outputs['previous_id']
+- Always validate commands before execution
+- Include multiple actions when needed"""},
                                 {"role": "user", "content": job.content}
                             ],
                             stream=False
