@@ -57,6 +57,11 @@ Respond ONLY with valid XML using these actions:
 <python> - Execute Python code 
 <reasoning> - Perform analysis or break down steps
 
+When you need user input, use:
+<request_input id="unique_id">
+  <prompt>Your question here</prompt>
+</request_input>
+
 For "get reddit posts and save to JSON" you might respond:
 <actions>
   <action id="1" type="bash">
@@ -70,6 +75,18 @@ For "get reddit posts and save to JSON" you might respond:
   </action>
   <action id="3" type="reasoning" depends_on="2">
     <content>Analyze the collected data and summarize key trends</content>
+  </action>
+</actions>
+
+Example with input:
+<actions>
+  <request_input id="target_url">
+    <prompt>What URL should I scrape?</prompt>
+  </request_input>
+  <action id="1" type="python" depends_on="target_url">
+    <content>
+    # Use outputs['target_url'] here
+    </content>
   </action>
 </actions>
 
@@ -117,13 +134,36 @@ class AgentCLI(Cmd):
             print("\n[Agent Response]")
             print(last_output)
             
-            # Check if agent generated new XML actions
             try:
-                ET.fromstring(last_output)
-                self.agent.add_job(last_output)
-                print("\n[Executing Generated Plan]")
-                self.agent.process_queue()
-                self._show_results()
+                root = ET.fromstring(last_output)
+                # Handle input requests first
+                inputs = {}
+                for req in root.findall('request_input'):
+                    input_id = req.get('id')
+                    prompt = req.find('prompt').text
+                    inputs[input_id] = input(prompt + " ")
+                
+                # Add collected inputs to outputs
+                self.agent.outputs.update(inputs)
+                
+                # Now handle actions
+                action_xml = ET.tostring(root, encoding='unicode')
+                self.agent.add_job(action_xml)
+                
+                # Get user confirmation
+                print("\n[Generated Plan]")
+                for job in self.agent.job_queue:
+                    if job.status == 'pending':
+                        print(f"{job.id}: {job.type} - {job.content[:50]}...")
+                
+                if input("Execute these actions? (y/n) ").lower() == 'y':
+                    print("\n[Executing Generated Plan]")
+                    self.agent.process_queue()
+                    self._show_results()
+                else:
+                    print("Execution canceled")
+                    self.agent.job_queue = []
+                    
             except ET.ParseError:
                 print("\n[Final Answer]")
                 print(last_output)
