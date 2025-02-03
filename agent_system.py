@@ -43,10 +43,17 @@ class Agent:
                     elif job.type == 'python':
                         exec(job.content, globals(), self.outputs)
                     elif job.type == 'reasoning':
-                        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+                        client = OpenAI(
+                            api_key=os.getenv("DEEPSEEK_API_KEY"),
+                            base_url="https://api.deepseek.com"
+                        )
                         response = client.chat.completions.create(
-                            model="gpt-3.5-turbo",
-                            messages=[{"role": "user", "content": job.content}]
+                            model="deepseek-chat",
+                            messages=[
+                                {"role": "system", "content": "You are a helpful assistant"},
+                                {"role": "user", "content": job.content}
+                            ],
+                            stream=False
                         )
                         self.outputs[job.id] = response.choices[0].message.content
                     job.status = 'completed'
