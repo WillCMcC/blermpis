@@ -216,10 +216,11 @@ class Agent:
 class AgentCLI(Cmd):
     prompt = 'agent> '
     
-    def __init__(self):
+    def __init__(self, initial_query=None):
         super().__init__()
         self.agent = Agent()
-        self.initial_query = None
+        if initial_query:
+            self.default(initial_query)
     
     def onecmd(self, line):
         """Override to handle natural language inputs properly"""
@@ -234,9 +235,9 @@ class AgentCLI(Cmd):
         if line.strip().lower() == 'exit':
             return self.do_exit('')
             
-        if self.initial_query is None:
-            self.initial_query = line
-            # Create first reasoning job
+        # Check if initial job exists/has output
+        has_initial = any(job.id == "0" for job in self.agent.job_queue) or "0" in self.agent.outputs
+        if not has_initial:
             self.agent.add_job(f"""<actions>
                 <action id="0" type="reasoning">
                     <content>Generate an XML action plan to: {line}</content>
@@ -394,4 +395,6 @@ class AgentCLI(Cmd):
         return True
 
 if __name__ == '__main__':
-    AgentCLI().cmdloop()
+    import sys
+    initial_query = ' '.join(sys.argv[1:]) if len(sys.argv) > 1 else None
+    AgentCLI(initial_query=initial_query).cmdloop()
