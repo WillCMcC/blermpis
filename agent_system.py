@@ -123,8 +123,19 @@ class AgentCLI(Cmd):
         self.agent = Agent()
         self.initial_query = None
     
+    def onecmd(self, line):
+        """Override to handle natural language inputs properly"""
+        if not line:
+            return False
+        if line.split()[0].lower() not in ['exit']:
+            return self.default(line)
+        return super().onecmd(line)
+    
     def default(self, line):
         """Handle natural language queries"""
+        if line.strip().lower() == 'exit':
+            return self.do_exit('')
+            
         if self.initial_query is None:
             self.initial_query = line
             # Create first reasoning job
