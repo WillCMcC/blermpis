@@ -9,7 +9,7 @@ from openai import OpenAI
 
 DEEPSEEK_API_KEY='sk-c4e470b3ca36497d87cabd72c79b4fcf'
 OPENROUTER_API_KEY='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'
-
+models = ['anthropic/claude-3.5-sonnet', 'deepseek/deepseek-r1', 'meta-llama/llama-3.1-405b-instruct']
 @dataclass
 class Job:
     id: str
@@ -183,7 +183,7 @@ class Agent:
                             })
 
                             response = client.chat.completions.create(
-                                model="deepseek/deepseek-r1:free",
+                                model="deepseek/deepseek-r1",
                                 messages=[
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": job_content}
