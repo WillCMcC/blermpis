@@ -180,6 +180,8 @@ class AgentCLI(Cmd):
                     action_id = 1  # Start after initial 0 job
                     
                     for elem in root:
+                        if elem.tag in ['reasoning', 'request_input']:  # Skip non-executable types
+                            continue
                         action = ET.SubElement(normalized, 'action', {
                             'id': str(action_id),
                             'type': elem.tag
