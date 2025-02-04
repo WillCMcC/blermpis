@@ -236,8 +236,10 @@ class AgentCLI(Cmd):
                 inputs = {}
                 for req in root.findall('request_input'):
                     input_id = req.get('id')
-                    prompt = req.find('prompt').text
-                    inputs[input_id] = input(prompt + " ")
+                    prompt_text = req.get('desc') or req.text or "Please provide input:"
+                    if not prompt_text.endswith(" "):  # Ensure space after prompt
+                        prompt_text += " "
+                    inputs[input_id] = input(prompt_text)
                 
                 # Add collected inputs to outputs
                 self.agent.outputs.update(inputs)
