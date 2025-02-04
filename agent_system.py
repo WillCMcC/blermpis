@@ -16,6 +16,7 @@ class Job:
     content: str
     depends_on: list[str] = None
     status: str = 'pending'
+    output_ref: str = None  # Variable name to store output in
 
 class Agent:
     def __init__(self):
@@ -48,12 +49,18 @@ class Agent:
             if all(self.outputs.get(dep) is not None for dep in job.depends_on):
                 try:
                     if job.type == 'bash':
+                        # Inject dependency outputs as environment variables
+                        env_vars = os.environ.copy()
+                        env_vars.update({f'OUTPUT_{dep_id}': str(self.outputs.get(dep_id)) 
+                                    for dep_id in job.depends_on})
+                        env_vars['PS1'] = ''  # Cleaner output
+                        
                         result = subprocess.run(
                             job.content, 
                             shell=True, 
                             capture_output=True, 
                             text=True,
-                            env={**os.environ, 'PS1': ''}  # Cleaner output
+                            env=env_vars
                         )
                         # Clean ANSI escape codes
                         clean_output = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', result.stdout)
@@ -66,7 +73,9 @@ class Agent:
                         sys.stdout = buffer = StringIO()
                         
                         try:
-                            locs = {}
+                            locs = {
+                                'outputs': {dep: self.outputs.get(dep) for dep in job.depends_on}
+                            }
                             exec(job.content, globals(), locs)
                             output = buffer.getvalue()
                             # Store both variables and output
@@ -95,8 +104,12 @@ class Agent:
                             warnings.simplefilter("ignore")
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
-                                system_msg = """You are an AI planner. Generate a step-by-step plan using XML actions (<bash>/<python>/<reasoning>/<request_input>). 
-                                Wrap ALL steps in <actions> tags. Consider dependencies between steps using 'depends_on' attributes. Use reasoning jobs to prompt models -- don't do that with python."""
+                                system_msg = """You are an AI planner. Generate XML action plans with these requirements:
+1. All outputs are stored in variables named outputs["JOB_ID"]
+2. Python scripts access previous results via outputs parameter
+3. Bash commands access previous results via $OUTPUT_JOB_ID variables
+4. Reasoning steps reference previous outputs as {{outputs.JOB_ID}}
+Wrap ALL steps in <actions> tags. Use depends_on attributes for dependencies."""
                             else:  # Subsequent reasoning queries
                                 system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags."""
 
@@ -224,9 +237,14 @@ class AgentCLI(Cmd):
                             continue
                         action = ET.SubElement(normalized, 'action', {
                             'id': str(action_id),
-                            'type': elem.tag
+                            'type': elem.tag,
+                            'desc': elem.get('desc', '')
                         })
-                        ET.SubElement(action, 'content').text = elem.text
+                        # Add output reference handling
+                        if elem.tag in ['python', 'bash']:
+                            action.set('output_ref', f'result_{action_id}')
+                        content = ET.SubElement(action, 'content')
+                        content.text = elem.text
                         action_id += 1
                     
                     response_content = ET.tostring(normalized, encoding='unicode')
