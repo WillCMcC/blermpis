@@ -74,6 +74,9 @@ class Agent:
                         finally:
                             sys.stdout = old_stdout
                     elif job.type == 'reasoning':
+                        # Add query logging
+                        print(f"\n[Reasoning Query]\n{job.content}\n{'='*50}")
+
                         api_key = DEEPSEEK_API_KEY
                         if not api_key:
                             raise ValueError("DEEPSEEK_API_KEY environment variable not set")
@@ -103,6 +106,9 @@ class Agent:
                             )
                         
                         response_content = response.choices[0].message.content
+                        
+                        # Add response logging before storing
+                        print(f"[Raw Reasoning Response]\n{response_content}\n{'='*50}")
                         # Store response with type information
                         self.outputs[job.id] = {
                             'raw_response': response_content,
