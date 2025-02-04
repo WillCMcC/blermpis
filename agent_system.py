@@ -8,6 +8,7 @@ from cmd import Cmd
 from openai import OpenAI
 
 DEEPSEEK_API_KEY='sk-c4e470b3ca36497d87cabd72c79b4fcf'
+OPENROUTER_API_KEY='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'
 
 @dataclass
 class Job:
@@ -127,13 +128,13 @@ class Agent:
                         # Add query logging
                         print(f"\n[Reasoning Query]\n{job.content}\n{'='*50}")
 
-                        api_key = DEEPSEEK_API_KEY
+                        api_key = OPENROUTER_API_KEY
                         if not api_key:
                             raise ValueError("DEEPSEEK_API_KEY environment variable not set")
                             
                         client = OpenAI(
                             api_key=api_key,
-                            base_url="https://api.deepseek.com"
+                            base_url="https://openrouter.ai/api/v1"
                         )
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
@@ -182,7 +183,7 @@ class Agent:
                             })
 
                             response = client.chat.completions.create(
-                                model="deepseek-reasoner",
+                                model="deepseek/deepseek-r1:free",
                                 messages=[
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": job_content}
@@ -216,11 +217,10 @@ class Agent:
 class AgentCLI(Cmd):
     prompt = 'agent> '
     
-    def __init__(self, initial_query=None):
+    def __init__(self):
         super().__init__()
         self.agent = Agent()
-        if initial_query:
-            self.default(initial_query)
+        self.initial_query = None
     
     def onecmd(self, line):
         """Override to handle natural language inputs properly"""
@@ -235,9 +235,9 @@ class AgentCLI(Cmd):
         if line.strip().lower() == 'exit':
             return self.do_exit('')
             
-        # Check if initial job exists/has output
-        has_initial = any(job.id == "0" for job in self.agent.job_queue) or "0" in self.agent.outputs
-        if not has_initial:
+        if self.initial_query is None:
+            self.initial_query = line
+            # Create first reasoning job
             self.agent.add_job(f"""<actions>
                 <action id="0" type="reasoning">
                     <content>Generate an XML action plan to: {line}</content>
@@ -395,6 +395,4 @@ class AgentCLI(Cmd):
         return True
 
 if __name__ == '__main__':
-    import sys
-    initial_query = ' '.join(sys.argv[1:]) if len(sys.argv) > 1 else None
-    AgentCLI(initial_query=initial_query).cmdloop()
+    AgentCLI().cmdloop()
