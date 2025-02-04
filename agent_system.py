@@ -306,7 +306,7 @@ class AgentCLI(Cmd):
                             continue
                         action = ET.SubElement(normalized, 'action', {
                             'id': str(action_id),
-                            'type': elem.tag,
+                            'type': elem.get('type', 'python'),  # Get existing type attribute
                             'desc': elem.get('desc', '')
                         })
                         # Add output reference handling
