@@ -141,16 +141,17 @@ class Agent:
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
 1. Python scripts MUST declare ALL referenced outputs in depends_on
-   - Example: If using outputs["1"], include depends_on="1"
+   - Example: If using outputs["1"]["raw_response"], include depends_on="1"
 2. Add explicit depends_on for ALL cross-job references
 3. Python script outputs are stored as dictionaries in outputs["JOB_ID"] containing:
    - 'output': String containing all printed content 
    - 'variables': Dictionary of variables defined in the script
    Access printed output with outputs["X"]["output"]
-4. Python scripts access previous results via outputs parameter
+4. Reasoning job responses are stored in outputs["JOB_ID"]["raw_response"]
 5. Bash commands access previous results via $OUTPUT_JOB_ID variables
-6. Reasoning steps reference previous outputs as {{outputs.JOB_ID}}
-7. Use these XML tags:
+6. Reasoning steps reference previous outputs as {{outputs.JOB_ID.raw_response}}
+7. Python scripts access reasoning responses via outputs["JOB_ID"]["raw_response"]
+8. Use these XML tags:
    - <actions>: Container for all steps (required)
    - <action type="TYPE" id="ID" depends_on="ID1,ID2">: Single step with:
        * type: "bash", "python", or "reasoning" 
