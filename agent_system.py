@@ -167,7 +167,19 @@ class AgentCLI(Cmd):
             # Check for direct response content
             if '<response>' in response_content:
                 print("\n[Generated Content]")
-                print(ET.fromstring(response_content).find('response').text.strip())
+                try:
+                    # Wrap in root element in case there's extra text
+                    wrapped = f"<wrapper>{response_content}</wrapper>"
+                    root = ET.fromstring(wrapped)
+                    response_node = root.find('.//response')  # Search anywhere in doc
+                    if response_node is not None and response_node.text:
+                        print(response_node.text.strip())
+                    else:
+                        print("Received empty response")
+                        print("Raw AI output:", response_content)
+                except ET.ParseError:
+                    # Fallback display for malformed XML
+                    print("".join(response_content.split('<response>')[1].split('</response>')[0]))
                 return
                 
             print("\n[Proposed Actions]")
