@@ -339,7 +339,9 @@ class AgentCLI(Cmd):
                 print("\n" + "="*50 + "\n📋 Generated Plan\n" + "="*50)
                 for job in self.agent.job_queue:
                     if job.status == 'pending':
-                        prefix = "🖥️  BASH" if job.type == 'bash' else "🐍 PYTHON"
+                        prefix = "🖥️  BASH" if job.type == 'bash' else \
+                                "🐍 PYTHON" if job.type == 'python' else \
+                                "💭 REASONING"
                         print(f"\n{prefix} ACTION [ID {job.id}]:")
                         print("-"*40)
                         print(job.content)
@@ -380,8 +382,9 @@ class AgentCLI(Cmd):
                 elif job.type == 'bash':
                     output = f"\n📤 Output:\n{result.get('output', '')}" 
                     command = f"\n⚡ Command:\n{job.content}"
-                else:  # Reasoning jobs
-                    output = f"\n💭 Response:\n{result.get('raw_response', 'No response captured')}"
+                else:  # Explicit handling for reasoning jobs
+                    response = result.get('raw_response', 'No response captured')
+                    output = f"\n💭 Response:\n{response}"
             else:  # Handle legacy string outputs
                 output = f"\n⚠️ Raw Output:\n{result}"
                 
