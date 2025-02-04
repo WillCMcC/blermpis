@@ -73,6 +73,7 @@ Respond ONLY with valid XML using:
                     job.status = 'completed'
                 except Exception as e:
                     job.status = f'failed: {str(e)}'
+                    print(f"\n⚠️ Job {job.id} failed: {e}")  # Add error visibility
 
 class AgentCLI(Cmd):
     prompt = 'agent> '
@@ -99,7 +100,20 @@ class AgentCLI(Cmd):
 
     def _handle_response(self):
         """Process and display results"""
+        # Find the initial reasoning job
+        initial_job = next((job for job in self.agent.job_queue if job.id == "0"), None)
+        
+        if initial_job and initial_job.status.startswith('failed'):
+            print(f"\n❌ Initial processing failed: {initial_job.status.split(':', 1)[-1].strip()}")
+            return
+            
         last_output = self.agent.outputs.get("0")
+        
+        if not last_output:
+            print("\n🔍 No response received - Possible API issues or empty response")
+            print("Check your DEEPSEEK_API_KEY environment variable")
+            return
+            
         if last_output:
             print("\n[Chain of Thought]")
             print(last_output['reasoning'])
