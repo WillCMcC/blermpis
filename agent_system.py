@@ -181,10 +181,16 @@ class AgentCLI(Cmd):
         """Display job outcomes"""
         print("\n[Execution Results]")
         for job in self.agent.job_queue:
+            output = self.agent.outputs.get(job.id, 'No output')
+            if job.type == 'bash':
+                output = f"\n💻 Command: {job.content}\n📋 Output:\n{output}"
+            elif job.type == 'python':
+                output = f"\n🐍 Code executed: {job.content[:100]}...\n📦 Result: {output}"
+                
             if job.status == 'completed':
-                print(f"- {job.id}: {self.agent.outputs.get(job.id, 'No output')}")
+                print(f"\n✅ {job.id} ({job.type}): {output}")
             elif job.status.startswith('failed'):
-                print(f"- {job.id}: FAILED - {job.status.split(':')[-1].strip()}")
+                print(f"\n❌ {job.id} ({job.type}): FAILED - {job.status.split(':')[-1].strip()}")
     
     def do_exit(self, arg):
         """Exit the CLI"""
