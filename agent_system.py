@@ -112,7 +112,10 @@ class Agent:
                             }
                         except Exception as e:
                             output = f"Python Error: {str(e)}"
-                            self.outputs[job.id] = output
+                            self.outputs[job.id] = {
+                                'error': output,
+                                'output': output  # Maintain output key for compatibility
+                            }
                         finally:
                             sys.stdout = old_stdout
                     elif job.type == 'reasoning':
@@ -353,20 +356,24 @@ class AgentCLI(Cmd):
             if job.id == "0":  # Skip initial reasoning job
                 continue
                 
-            result = self.agent.outputs.get(job.id, 'No output recorded')
+            result = self.agent.outputs.get(job.id, {})  # Default to empty dict
+            output = ""  # Initialize output variable
             
             header = f"\n🔹 [{job.type.upper()} JOB {job.id}]"
             command = ""
-            output = ""  # Initialize output variable
-            
-            if job.type == 'python':
-                output = f"\n🐍 Output:\n{result.get('output', 'No print output')}" if isinstance(result, dict) else f"\n❌ Error:\n{result}"
-                command = f"\n📜 Script:\n{job.content}"
-            elif job.type == 'bash':
-                output = f"\n📤 Output:\n{result}" if result else "✅ Command executed successfully"
-                command = f"\n⚡ Command:\n{job.content}"
-            else:  # Handle reasoning/other job types
-                output = f"\n💭 Response:\n{result.get('raw_response', 'No response captured')}"
+
+            # Handle different result types safely
+            if isinstance(result, dict):
+                if job.type == 'python':
+                    output = f"\n🐍 Output:\n{result.get('output', 'No print output')}"
+                    command = f"\n📜 Script:\n{job.content}"
+                elif job.type == 'bash':
+                    output = f"\n📤 Output:\n{result.get('output', '')}" 
+                    command = f"\n⚡ Command:\n{job.content}"
+                else:  # Reasoning jobs
+                    output = f"\n💭 Response:\n{result.get('raw_response', 'No response captured')}"
+            else:  # Handle legacy string outputs
+                output = f"\n⚠️ Raw Output:\n{result}"
                 
             print(f"{header}{command}{output}")
             
