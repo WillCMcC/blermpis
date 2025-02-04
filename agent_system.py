@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 import subprocess
 import os
+import re
 import warnings
 from cmd import Cmd
 from openai import OpenAI
@@ -41,10 +42,37 @@ class Agent:
             if all(self.outputs.get(dep) is not None for dep in job.depends_on):
                 try:
                     if job.type == 'bash':
-                        result = subprocess.run(job.content, shell=True, capture_output=True, text=True)
-                        self.outputs[job.id] = result.stdout
+                        result = subprocess.run(
+                            job.content, 
+                            shell=True, 
+                            capture_output=True, 
+                            text=True,
+                            env={**os.environ, 'PS1': ''}  # Cleaner output
+                        )
+                        # Clean ANSI escape codes
+                        clean_output = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', result.stdout)
+                        self.outputs[job.id] = clean_output.strip()
                     elif job.type == 'python':
-                        exec(job.content, globals(), self.outputs)
+                        # Capture printed output
+                        import sys
+                        from io import StringIO
+                        old_stdout = sys.stdout
+                        sys.stdout = buffer = StringIO()
+                        
+                        try:
+                            locs = {}
+                            exec(job.content, globals(), locs)
+                            output = buffer.getvalue()
+                            # Store both variables and output
+                            self.outputs[job.id] = {
+                                'output': output,
+                                'variables': locs
+                            }
+                        except Exception as e:
+                            output = f"Python Error: {str(e)}"
+                            self.outputs[job.id] = output
+                        finally:
+                            sys.stdout = old_stdout
                     elif job.type == 'reasoning':
                         api_key = DEEPSEEK_API_KEY
                         if not api_key:
@@ -177,12 +205,16 @@ class AgentCLI(Cmd):
                 self.agent.add_job(action_xml)
                 
                 # Get user confirmation
-                print("\n[Generated Plan]")
+                print("\n" + "="*50 + "\n📋 Generated Plan\n" + "="*50)
                 for job in self.agent.job_queue:
                     if job.status == 'pending':
-                        print(f"{job.id}: {job.type} - {job.content[:50]}...")
-                
-                if input("Execute these actions? (y/n) ").lower() == 'y':
+                        prefix = "🖥️  BASH" if job.type == 'bash' else "🐍 PYTHON"
+                        print(f"\n{prefix} ACTION [ID {job.id}]:")
+                        print("-"*40)
+                        print(job.content)
+                        print("-"*40)
+
+                if input("\n🚀 Execute these actions? (y/n) ").lower() == 'y':
                     print("\n[Executing Generated Plan]")
                     self.agent.process_queue()
                     self._show_results()
@@ -197,19 +229,27 @@ class AgentCLI(Cmd):
             print("No response received")
 
     def _show_results(self):
-        """Display job outcomes"""
-        print("\n[Execution Results]")
+        """Display job outcomes with improved formatting"""
+        print("\n" + "="*50 + "\n📊 Execution Results\n" + "="*50)
         for job in self.agent.job_queue:
-            output = self.agent.outputs.get(job.id, 'No output')
-            if job.type == 'bash':
-                output = f"\n💻 Command: {job.content}\n📋 Output:\n{output}"
-            elif job.type == 'python':
-                output = f"\n🐍 Code executed: {job.content[:100]}...\n📦 Result: {output}"
+            if job.id == "0":  # Skip initial reasoning job
+                continue
                 
-            if job.status == 'completed':
-                print(f"\n✅ {job.id} ({job.type}): {output}")
-            elif job.status.startswith('failed'):
-                print(f"\n❌ {job.id} ({job.type}): FAILED - {job.status.split(':')[-1].strip()}")
+            result = self.agent.outputs.get(job.id, 'No output recorded')
+            
+            header = f"\n🔹 [{job.type.upper()} JOB {job.id}]"
+            command = f"\n⚡ Command:\n{job.content}" if job.type == 'bash' else ""
+            
+            if job.type == 'python':
+                output = f"\n🐍 Output:\n{result.get('output', 'No print output')}" if isinstance(result, dict) else f"\n❌ Error:\n{result}"
+                command = f"\n📜 Script:\n{job.content}"
+            elif job.type == 'bash':
+                output = f"\n📤 Output:\n{result}" if result else "✅ Command executed successfully"
+
+            print(f"{header}{command}{output}")
+            
+            if job.status.startswith('failed'):
+                print(f"\n🔥 Failure: {job.status.split(':', 1)[-1].strip()}")
     
     def do_exit(self, arg):
         """Exit the CLI"""
