@@ -142,7 +142,26 @@ class AgentCLI(Cmd):
             print(last_output['content'])
             
             try:
-                root = ET.fromstring(last_output['content'])
+                response_content = last_output['content']
+                
+                # Fix: Normalize XML structure if needed
+                if not response_content.startswith('<actions>'):
+                    # Wrap standalone commands in <actions><action> structure
+                    root = ET.fromstring(f"<wrapper>{response_content}</wrapper>")
+                    normalized = ET.Element('actions')
+                    action_id = 1  # Start after initial 0 job
+                    
+                    for elem in root:
+                        action = ET.SubElement(normalized, 'action', {
+                            'id': str(action_id),
+                            'type': elem.tag
+                        })
+                        ET.SubElement(action, 'content').text = elem.text
+                        action_id += 1
+                    
+                    response_content = ET.tostring(normalized, encoding='unicode')
+                
+                root = ET.fromstring(response_content)
                 # Handle input requests first
                 inputs = {}
                 for req in root.findall('request_input'):
