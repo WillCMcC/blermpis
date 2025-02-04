@@ -47,6 +47,17 @@ class Agent:
                 depends_on=depends_on
             ))
     
+    def _execute_reasoning_subjob(self, query, parent_id):
+        """Handle nested model calls from Python scripts"""
+        subjob_id = f"{parent_id}_sub"
+        self.add_job(f"""<actions>
+            <action id="{subjob_id}" type="reasoning">
+                <content>{query}</content>
+            </action>
+        </actions>""")
+        self.process_queue()
+        return self.outputs.get(subjob_id, {}).get('raw_response', 'No response')
+
     def process_queue(self):
         # Process a copy to safely modify original list
         for job in list(self.job_queue):  # Iterate copy of queue
@@ -80,7 +91,10 @@ class Agent:
                         
                         try:
                             locs = {
-                                'outputs': {dep: self.outputs.get(dep) for dep in job.depends_on}
+                                'outputs': {dep: self.outputs.get(dep) for dep in job.depends_on},
+                                'agent': self,  # Add agent reference
+                                'model_call': lambda query: self._execute_reasoning_subjob(query, job.id),
+                                'get_output': lambda key: self.outputs.get(key)
                             }
                             exec(job.content, globals(), locs)
                             output = buffer.getvalue()
