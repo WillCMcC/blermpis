@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 import subprocess
 import os
+import warnings
 from cmd import Cmd
 from openai import OpenAI
 
@@ -47,59 +48,28 @@ class Agent:
                             api_key=os.getenv("DEEPSEEK_API_KEY"),
                             base_url="https://api.deepseek.com"
                         )
-                        response = client.chat.completions.create(
-                            model="deepseek-chat",
-                            messages=[
-                                {"role": "system", "content": """You are an autonomous agent that solves tasks using XML-formatted actions. 
-
-Respond ONLY with valid XML using these actions:
-<bash> - Run terminal commands
-<python> - Execute Python code 
-<reasoning> - Perform analysis or break down steps
-
-When you need user input, use:
-<request_input id="unique_id">
-  <prompt>Your question here</prompt>
-</request_input>
-
-For "get reddit posts and save to JSON" you might respond:
-<actions>
-  <action id="1" type="bash">
-    <content>pip install praw</content>
-  </action>
-  <action id="2" type="python" depends_on="1">
-    <content>
-    import praw, json
-    # ...reddit API code...
-    </content>
-  </action>
-  <action id="3" type="reasoning" depends_on="2">
-    <content>Analyze the collected data and summarize key trends</content>
-  </action>
-</actions>
-
-Example with input:
-<actions>
-  <request_input id="target_url">
-    <prompt>What URL should I scrape?</prompt>
-  </request_input>
-  <action id="1" type="python" depends_on="target_url">
-    <content>
-    # Use outputs['target_url'] here
-    </content>
-  </action>
-</actions>
-
-Guidelines:
-1. Always start with required setup steps
-2. Chain dependencies properly
-3. Validate commands before suggesting
-4. Prefer Python over bash for complex tasks"""},
-                                {"role": "user", "content": job.content}
-                            ],
-                            stream=False
-                        )
-                        self.outputs[job.id] = response.choices[0].message.content
+                        with warnings.catch_warnings():
+                            warnings.simplefilter("ignore")
+                            response = client.chat.completions.create(
+                                model="deepseek-reasoner",
+                                messages=[
+                                    {"role": "system", "content": """First think step-by-step, then output XML actions.
+Respond ONLY with valid XML using:
+<bash> - Terminal commands
+<python> - Code execution
+<reasoning> - Analysis steps
+<request_input> - Get user input"""},
+                                    {"role": "user", "content": job.content}
+                                ],
+                                max_tokens=4096,
+                                stream=False
+                            )
+                        
+                        # Store both CoT and final answer
+                        self.outputs[job.id] = {
+                            'reasoning': response.choices[0].message.reasoning_content,
+                            'content': response.choices[0].message.content
+                        }
                     job.status = 'completed'
                 except Exception as e:
                     job.status = f'failed: {str(e)}'
@@ -131,11 +101,14 @@ class AgentCLI(Cmd):
         """Process and display results"""
         last_output = self.agent.outputs.get("0")
         if last_output:
-            print("\n[Agent Response]")
-            print(last_output)
+            print("\n[Chain of Thought]")
+            print(last_output['reasoning'])
+            
+            print("\n[Proposed Actions]")
+            print(last_output['content'])
             
             try:
-                root = ET.fromstring(last_output)
+                root = ET.fromstring(last_output['content'])
                 # Handle input requests first
                 inputs = {}
                 for req in root.findall('request_input'):
