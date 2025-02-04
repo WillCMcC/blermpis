@@ -95,8 +95,7 @@ class Agent:
                                 system_msg = """You are an AI planner. Generate a step-by-step plan using XML actions (<bash>/<python>/<reasoning>/<request_input>). 
                                 Wrap ALL steps in <actions> tags. Consider dependencies between steps using 'depends_on' attributes. Use reasoning jobs to prompt models -- don't do that with python."""
                             else:  # Subsequent reasoning queries
-                                system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags. 
-                                Do NOT use any XML actions - this is for direct answers only."""
+                                system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags."""
 
                             response = client.chat.completions.create(
                                 model="deepseek-reasoner",
@@ -107,7 +106,6 @@ class Agent:
                                 max_tokens=4096,
                                 stream=False
                             )
-                        
                         response_content = response.choices[0].message.content
                         
                         # Add response logging before storing
