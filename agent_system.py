@@ -84,13 +84,18 @@ class Agent:
                         )
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
+                            # Determine system message based on job type
+                            if job.id == "0":  # Initial planning job
+                                system_msg = """You are an AI planner. Generate a step-by-step plan using XML actions (<bash>/<python>/<reasoning>/<request_input>). 
+                                Wrap ALL steps in <actions> tags. Consider dependencies between steps using 'depends_on' attributes."""
+                            else:  # Subsequent reasoning queries
+                                system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags. 
+                                Do NOT use any XML actions - this is for direct answers only."""
+
                             response = client.chat.completions.create(
                                 model="deepseek-reasoner",
                                 messages=[
-                                    {"role": "system", "content": """You are a reasoning assistant. Choose appropriate response format:
-- Use XML actions (<bash>/<python>/<reasoning>/<request_input>) for executable steps
-- Use <response> for final answers, reports, or non-executable content
-Wrap ALL output in either <actions> or <response> tags"""},
+                                    {"role": "system", "content": system_msg},
                                     {"role": "user", "content": job.content}
                                 ],
                                 max_tokens=4096,
@@ -141,7 +146,7 @@ class AgentCLI(Cmd):
             # Create first reasoning job
             self.agent.add_job(f"""<actions>
                 <action id="0" type="reasoning">
-                    <content>{line}</content>
+                    <content>Generate an XML action plan to: {line}</content>
                 </action>
             </actions>""")
             self.agent.process_queue()
@@ -174,23 +179,20 @@ class AgentCLI(Cmd):
             
         if last_output:
             response_content = last_output['raw_response']
-            
-            # Check for direct response content
-            if '<response>' in response_content:
-                print("\n[Generated Content]")
+                
+            # Handle direct responses from non-planning reasoning jobs
+            if last_output['response_type'] == 'content':
+                print("\n[Assistant Response]")
                 try:
-                    # Wrap in root element in case there's extra text
                     wrapped = f"<wrapper>{response_content}</wrapper>"
                     root = ET.fromstring(wrapped)
-                    response_node = root.find('.//response')  # Search anywhere in doc
+                    response_node = root.find('.//response')
                     if response_node is not None and response_node.text:
                         print(response_node.text.strip())
                     else:
                         print("Received empty response")
-                        print("Raw AI output:", response_content)
                 except ET.ParseError:
-                    # Fallback display for malformed XML
-                    print("".join(response_content.split('<response>')[1].split('</response>')[0]))
+                    print(response_content)
                 return
                 
             print("\n[Proposed Actions]")
