@@ -87,22 +87,21 @@ class Agent:
                             response = client.chat.completions.create(
                                 model="deepseek-reasoner",
                                 messages=[
-                                    {"role": "system", "content": """First think step-by-step, then output XML actions.
-Respond ONLY with valid XML using:
-<bash> - Terminal commands
-<python> - Code execution
-<reasoning> - Analysis steps
-<request_input> - Get user input"""},
+                                    {"role": "system", "content": """You are a reasoning assistant. Choose appropriate response format:
+- Use XML actions (<bash>/<python>/<reasoning>/<request_input>) for executable steps
+- Use <response> for final answers, reports, or non-executable content
+Wrap ALL output in either <actions> or <response> tags"""},
                                     {"role": "user", "content": job.content}
                                 ],
                                 max_tokens=4096,
                                 stream=False
                             )
                         
-                        # Store both CoT and final answer
+                        response_content = response.choices[0].message.content
+                        # Store response with type information
                         self.outputs[job.id] = {
-                            'reasoning': response.choices[0].message.content,
-                            'content': response.choices[0].message.content
+                            'raw_response': response_content,
+                            'response_type': 'actions' if '<actions>' in response_content else 'content'
                         }
                     job.status = 'completed'
                 except Exception as e:
@@ -163,14 +162,18 @@ class AgentCLI(Cmd):
             return
             
         if last_output:
-            print("\n[Chain of Thought]")
-            print(last_output['reasoning'])
+            response_content = last_output['raw_response']
             
+            # Check for direct response content
+            if '<response>' in response_content:
+                print("\n[Generated Content]")
+                print(ET.fromstring(response_content).find('response').text.strip())
+                return
+                
             print("\n[Proposed Actions]")
-            print(last_output['content'])
+            print(response_content)
             
             try:
-                response_content = last_output['content']
                 
                 # Fix: Normalize XML structure if needed
                 if not response_content.startswith('<actions>'):
