@@ -38,7 +38,10 @@ class Agent:
             ))
     
     def process_queue(self):
-        for job in self.job_queue:
+        # Process a copy to safely modify original list
+        for job in list(self.job_queue):  # Iterate copy of queue
+            if job.status != 'pending':
+                continue
             if all(self.outputs.get(dep) is not None for dep in job.depends_on):
                 try:
                     if job.type == 'bash':
@@ -117,6 +120,8 @@ class Agent:
                     job.status = 'completed'
                 except Exception as e:
                     job.status = f'failed: {str(e)}'
+                    # Remove from queue whether successful or failed
+                    self.job_queue.remove(job)
                     # Improve error parsing for API responses
                     if "401" in str(e):
                         print("\n🔑 Authentication Failed - Verify:")
@@ -214,7 +219,7 @@ class AgentCLI(Cmd):
                     action_id = 1  # Start after initial 0 job
                     
                     for elem in root:
-                        if elem.tag in ['reasoning', 'request_input']:  # Skip non-executable types
+                        if elem.tag == 'request_input':  # Only skip input requests
                             continue
                         action = ET.SubElement(normalized, 'action', {
                             'id': str(action_id),
