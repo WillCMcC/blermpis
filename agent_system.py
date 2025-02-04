@@ -28,9 +28,15 @@ class Agent:
         for action in root.findall('action'):
             job_id = action.get('id')
             job_type = action.get('type')
-            content_element = action.find('python') or action.find('reasoning') or action.find('content')
+            
+            # Modified content extraction logic
+            content_element = action.find('content')
+            if content_element is None:  # Handle direct text content
+                content_element = action
+                
             if content_element is None or content_element.text is None:
                 raise ValueError(f"Action {job_id} missing content element")
+                
             content = content_element.text.strip()
             depends_on = action.get('depends_on', '').split(',') if action.get('depends_on') else []
             
