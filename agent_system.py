@@ -111,7 +111,12 @@ class Agent:
                                 'variables': locs
                             }
                         except Exception as e:
-                            output = f"Python Error: {str(e)}"
+                            error_msg = str(e)
+                            if "KeyError" in error_msg:
+                                error_msg += "\n🔑 Missing dependency - Verify:"
+                                error_msg += "\n1. All referenced jobs are in depends_on"
+                                error_msg += "\n2. Previous jobs completed successfully"
+                            output = f"Python Error: {error_msg}"
                             self.outputs[job.id] = {
                                 'error': output,
                                 'output': output  # Maintain output key for compatibility
@@ -135,14 +140,17 @@ class Agent:
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
-1. Python script outputs are stored as dictionaries in outputs["JOB_ID"] containing:
+1. Python scripts MUST declare ALL referenced outputs in depends_on
+   - Example: If using outputs["1"], include depends_on="1"
+2. Add explicit depends_on for ALL cross-job references
+3. Python script outputs are stored as dictionaries in outputs["JOB_ID"] containing:
    - 'output': String containing all printed content 
    - 'variables': Dictionary of variables defined in the script
    Access printed output with outputs["X"]["output"]
-2. Python scripts access previous results via outputs parameter
-3. Bash commands access previous results via $OUTPUT_JOB_ID variables
-4. Reasoning steps reference previous outputs as {{outputs.JOB_ID}}
-5. Use these XML tags:
+4. Python scripts access previous results via outputs parameter
+5. Bash commands access previous results via $OUTPUT_JOB_ID variables
+6. Reasoning steps reference previous outputs as {{outputs.JOB_ID}}
+7. Use these XML tags:
    - <actions>: Container for all steps (required)
    - <action type="TYPE" id="ID" depends_on="ID1,ID2">: Single step with:
        * type: "bash", "python", or "reasoning" 
@@ -150,15 +158,15 @@ class Agent:
        * depends_on: Comma-separated prerequisite IDs (optional)
    - <content>: Contains step instructions/text (required inside each action)
    - <request_input id="ID" desc="Prompt">: Get user input (use sparingly)
-6. Wrap ALL steps in <actions> tags
-7. Use ONLY these types of actions
-8. Ensure consistency between steps in terms of data storage and access formats
-9. Example valid structure:
+8. Wrap ALL steps in <actions> tags
+9. Use ONLY these types of actions
+10. Ensure consistency between steps in terms of data storage and access formats
+11. Example valid structure:
 <actions>
   <action type="reasoning" id="1" desc="Film analysis">
     <content>Compare {{outputs.2}} and {{outputs.3}}...</content>
   </action>
-  <action type="python" id="2" depends_on="1">
+  <action type="python" id="2" depends_on="0,1">
     <content>final = outputs["1"]["output"] + "\n" + outputs["0"]["output"]</content>
   </action>
 </actions>"""
