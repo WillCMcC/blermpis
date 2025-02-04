@@ -73,7 +73,14 @@ Respond ONLY with valid XML using:
                     job.status = 'completed'
                 except Exception as e:
                     job.status = f'failed: {str(e)}'
-                    print(f"\n⚠️ Job {job.id} failed: {e}")  # Add error visibility
+                    # Improve error parsing for API responses
+                    if "401" in str(e):
+                        print("\n🔑 Authentication Failed - Verify:")
+                        print("1. You have a valid DeepSeek API key")
+                        print("2. Your API key is set in environment:")
+                        print("   export DEEPSEEK_API_KEY=your_key_here")
+                    else:
+                        print(f"\n⚠️ Job {job.id} failed: {e}")
 
 class AgentCLI(Cmd):
     prompt = 'agent> '
@@ -100,6 +107,13 @@ class AgentCLI(Cmd):
 
     def _handle_response(self):
         """Process and display results"""
+        # Add API key check first
+        if not os.getenv("DEEPSEEK_API_KEY"):
+            print("\n❌ Missing DEEPSEEK_API_KEY environment variable")
+            print("Get an API key from https://platform.deepseek.com")
+            print("Then run: export DEEPSEEK_API_KEY=your_key_here")
+            return
+            
         # Find the initial reasoning job
         initial_job = next((job for job in self.agent.job_queue if job.id == "0"), None)
         
