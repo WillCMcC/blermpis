@@ -40,6 +40,13 @@ class Agent:
             content = content_element.text.strip()
             depends_on = action.get('depends_on', '').split(',') if action.get('depends_on') else []
             
+            # Add implicit dependencies from template variables
+            template_deps = re.findall(r'\{\{outputs\.(\d+)\}\}', content)
+            depends_on += template_deps
+            
+            # Remove duplicates and empty strings
+            depends_on = list(set([d for d in depends_on if d]))
+            
             self.job_queue.append(Job(
                 id=job_id,
                 type=job_type,
@@ -63,7 +70,7 @@ class Agent:
         for job in list(self.job_queue):  # Iterate copy of queue
             if job.status != 'pending':
                 continue
-            if all(self.outputs.get(dep) is not None for dep in job.depends_on):
+            if all(self.outputs.get(dep) not in (None, 'No response') for dep in job.depends_on):
                 try:
                     if job.type == 'bash':
                         # Inject dependency outputs as environment variables
@@ -150,11 +157,18 @@ class Agent:
                             else:  # Subsequent reasoning queries
                                 system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags."""
 
+                            # Substitute template variables
+                            from string import Template
+                            job_content = Template(job.content).safe_substitute({
+                                f'outputs.{dep_id}': str(self.outputs.get(dep_id, {}).get('raw_response', ''))
+                                for dep_id in job.depends_on
+                            })
+
                             response = client.chat.completions.create(
                                 model="deepseek-reasoner",
                                 messages=[
                                     {"role": "system", "content": system_msg},
-                                    {"role": "user", "content": job.content}
+                                    {"role": "user", "content": job_content}
                                 ],
                                 max_tokens=4096,
                                 stream=False
