@@ -87,7 +87,7 @@ class Agent:
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate a step-by-step plan using XML actions (<bash>/<python>/<reasoning>/<request_input>). 
-                                Wrap ALL steps in <actions> tags. Consider dependencies between steps using 'depends_on' attributes."""
+                                Wrap ALL steps in <actions> tags. Consider dependencies between steps using 'depends_on' attributes. Use reasoning jobs to prompt models -- don't do that with python."""
                             else:  # Subsequent reasoning queries
                                 system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags. 
                                 Do NOT use any XML actions - this is for direct answers only."""
@@ -146,7 +146,7 @@ class AgentCLI(Cmd):
             # Create first reasoning job
             self.agent.add_job(f"""<actions>
                 <action id="0" type="reasoning">
-                    <content>Generate an XML action plan to: {line}. Use <reasoning> steps ONLY for model queries needing human-like reasoning - never for Python code execution.</content>
+                    <content>Generate an XML action plan to: {line}</content>
                 </action>
             </actions>""")
             self.agent.process_queue()
