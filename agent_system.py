@@ -145,7 +145,9 @@ class Agent:
    - <content>: Contains step instructions/text (required inside each action)
    - <request_input id="ID" desc="Prompt">: Get user input (use sparingly)
 6. Wrap ALL steps in <actions> tags
-7. Example valid structure:
+7. Use ONLY these types of actions
+8. Ensure consistency between steps in terms of data storage and access formats
+9. Example valid structure:
 <actions>
   <action type="reasoning" id="1" desc="Film analysis">
     <content>Compare {{outputs.2}} and {{outputs.3}}...</content>
