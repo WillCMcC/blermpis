@@ -6,6 +6,8 @@ import warnings
 from cmd import Cmd
 from openai import OpenAI
 
+DEEPSEEK_API_KEY='sk-c4e470b3ca36497d87cabd72c79b4fcf'
+
 @dataclass
 class Job:
     id: str
@@ -44,7 +46,7 @@ class Agent:
                     elif job.type == 'python':
                         exec(job.content, globals(), self.outputs)
                     elif job.type == 'reasoning':
-                        api_key = os.getenv("DEEPSEEK_API_KEY")
+                        api_key = DEEPSEEK_API_KEY
                         if not api_key:
                             raise ValueError("DEEPSEEK_API_KEY environment variable not set")
                             
@@ -112,7 +114,7 @@ class AgentCLI(Cmd):
     def _handle_response(self):
         """Process and display results"""
         # Add API key check first
-        if not os.getenv("DEEPSEEK_API_KEY"):
+        if not DEEPSEEK_API_KEY:
             print("\n❌ Missing DEEPSEEK_API_KEY environment variable")
             print("Get an API key from https://platform.deepseek.com")
             print("Then run: export DEEPSEEK_API_KEY=your_key_here")
