@@ -67,7 +67,7 @@ Respond ONLY with valid XML using:
                         
                         # Store both CoT and final answer
                         self.outputs[job.id] = {
-                            'reasoning': response.choices[0].message.reasoning_content,
+                            'reasoning': response.choices[0].message.content,
                             'content': response.choices[0].message.content
                         }
                     job.status = 'completed'
