@@ -132,7 +132,10 @@ class Agent:
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
-1. All outputs are stored in variables named outputs["JOB_ID"]
+1. Python script outputs are stored as dictionaries in outputs["JOB_ID"] containing:
+   - 'output': String containing all printed content 
+   - 'variables': Dictionary of variables defined in the script
+   Access printed output with outputs["X"]["output"]
 2. Python scripts access previous results via outputs parameter
 3. Bash commands access previous results via $OUTPUT_JOB_ID variables
 4. Reasoning steps reference previous outputs as {{outputs.JOB_ID}}
@@ -153,7 +156,7 @@ class Agent:
     <content>Compare {{outputs.2}} and {{outputs.3}}...</content>
   </action>
   <action type="python" id="2" depends_on="1">
-    <content>print("Processed:", outputs["1"])</content>
+    <content>final = outputs["1"]["output"] + "\n" + outputs["0"]["output"]</content>
   </action>
 </actions>"""
                             else:  # Subsequent reasoning queries
