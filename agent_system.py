@@ -146,7 +146,7 @@ class AgentCLI(Cmd):
             # Create first reasoning job
             self.agent.add_job(f"""<actions>
                 <action id="0" type="reasoning">
-                    <content>Generate an XML action plan to: {line}</content>
+                    <content>Generate an XML action plan to: {line}. Use <reasoning> steps ONLY for model queries needing human-like reasoning - never for Python code execution.</content>
                 </action>
             </actions>""")
             self.agent.process_queue()
