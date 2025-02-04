@@ -44,8 +44,12 @@ class Agent:
                     elif job.type == 'python':
                         exec(job.content, globals(), self.outputs)
                     elif job.type == 'reasoning':
+                        api_key = os.getenv("DEEPSEEK_API_KEY")
+                        if not api_key:
+                            raise ValueError("DEEPSEEK_API_KEY environment variable not set")
+                            
                         client = OpenAI(
-                            api_key=os.getenv("DEEPSEEK_API_KEY"),
+                            api_key=api_key,
                             base_url="https://api.deepseek.com"
                         )
                         with warnings.catch_warnings():
