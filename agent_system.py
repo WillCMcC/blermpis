@@ -18,6 +18,7 @@ class Job:
     depends_on: list[str] = None
     status: str = 'pending'
     output_ref: str = None  # Variable name to store output in
+    model: str = None  # Add model parameter
 
 class Agent:
     def __init__(self):
@@ -48,11 +49,17 @@ class Agent:
             # Remove duplicates and empty strings
             depends_on = list(set([d for d in depends_on if d]))
             
+            # Add model parameter extraction
+            model = action.get('model')  # Get model if specified
+            if job_type == 'reasoning' and not model:
+                model = 'deepseek/deepseek-r1'  # Default for reasoning
+
             self.job_queue.append(Job(
                 id=job_id,
                 type=job_type,
                 content=content,
-                depends_on=depends_on
+                depends_on=depends_on,
+                model=model  # Add model parameter
             ))
     
     def _execute_reasoning_subjob(self, query, parent_id):
@@ -141,7 +148,13 @@ class Agent:
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
-1. Python scripts MUST declare ALL referenced outputs in depends_on
+1. Choose the most appropriate model for each reasoning task using the model="MODEL_NAME" attribute
+   - deepseek-r1: Fast, affordable general reasoning (default)
+   - claude-3.5-sonnet: Complex analysis/long-form content
+   - llama-3.1-405b: Coding/structured data tasks
+2. Add model="MODEL_NAME" to <action> tags when appropriate
+3. First plan generation (id=0) must always use deepseek-r1
+4. Python scripts MUST declare ALL referenced outputs in depends_on
    - Example: If using outputs["1"]["raw_response"], include depends_on="1"
 2. Add explicit depends_on for ALL cross-job references
 3. Python script outputs are stored as dictionaries in outputs["JOB_ID"] containing:
@@ -182,8 +195,12 @@ class Agent:
                                 for dep_id in job.depends_on
                             })
 
+                            # Use job-specific model if specified, else deepseek-r1
+                            # Force deepseek-r1 for initial planning job
+                            model = job.model if job.id != "0" else "deepseek/deepseek-r1"
+                            
                             response = client.chat.completions.create(
-                                model="deepseek/deepseek-r1",
+                                model=model,
                                 messages=[
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": job_content}
