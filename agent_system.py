@@ -115,7 +115,24 @@ class Agent:
 2. Python scripts access previous results via outputs parameter
 3. Bash commands access previous results via $OUTPUT_JOB_ID variables
 4. Reasoning steps reference previous outputs as {{outputs.JOB_ID}}
-Wrap ALL steps in <actions> tags. Use depends_on attributes for dependencies."""
+5. Use these XML tags:
+   - <actions>: Container for all steps (required)
+   - <action type="TYPE" id="ID" depends_on="ID1,ID2">: Single step with:
+       * type: "bash", "python", or "reasoning" 
+       * id: Unique identifier (numbers recommended)
+       * depends_on: Comma-separated prerequisite IDs (optional)
+   - <content>: Contains step instructions/text (required inside each action)
+   - <request_input id="ID" desc="Prompt">: Get user input (use sparingly)
+6. Wrap ALL steps in <actions> tags
+7. Example valid structure:
+<actions>
+  <action type="reasoning" id="1" desc="Film analysis">
+    <content>Compare {{outputs.2}} and {{outputs.3}}...</content>
+  </action>
+  <action type="python" id="2" depends_on="1">
+    <content>print("Processed:", outputs["1"])</content>
+  </action>
+</actions>"""
                             else:  # Subsequent reasoning queries
                                 system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags."""
 
