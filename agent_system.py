@@ -57,7 +57,7 @@ class Agent:
             # Add model parameter extraction
             model = action.get('model')  # Get model if specified
             if job_type == 'reasoning' and not model:
-                model = 'deepseek/deepseek-r1'  # Default for reasoning
+                model = 'google/gemini-2.0-flash-001'  # Default for reasoning
 
             self.job_queue.append(Job(
                 id=job_id,
@@ -165,19 +165,18 @@ class Agent:
                             raise ValueError("DEEPSEEK_API_KEY environment variable not set")
                             
                         client = OpenAI(
-                            api_key=GROQ_API_KEY,
-                            base_url=GROQ_API_URL,
+                            api_key=OPENROUTER_API_KEY,
+                            base_url=OPENROUTER_API_URL,
                         )
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
-1. First action (id=0) MUST use model="deepseek/deepseek-r1"
+1. First action (id=0) MUST use model="google/gemini-2.0-flash-001"
 2. Subsequent actions can specify models:
-   - deepseek/deepseek-r1: slow general reasoning (default)
+   - google/gemini-2.0-flash-001: general reasoning (default)
    - openai/o1-mini: fast general reasoning 
-   - anthropic/claude-3.5-sonnet: Complex analysis/long-form content
    - meta-llama/llama-3.1-405b-instruct: Creative writing
 3. Strict XML Formatting:
    - NEVER use markdown code blocks (```xml) 
@@ -257,8 +256,8 @@ except Exception as e:
 
                             # Use job-specific model if specified, else deepseek-r1
                             # Force deepseek-r1 for initial planning job
-                            # model = job.model or 'deepseek/deepseek-r1'
-                            model = 'llama-3.3-70b-specdec'
+                            model = job.model or 'google/gemini-2.0-flash-001'
+                            # model = 'google/gemini-2.0-flash-001'
                             response = client.chat.completions.create(
                                 model=model,
                                 messages=[
