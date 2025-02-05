@@ -163,36 +163,53 @@ class Agent:
      * <content>: Contains instructions/code
      * <request_input id="ID" desc="PROMPT">: User input
    - Action types: "bash", "python", "reasoning"
-4. Response Formats:
+4. Strict Data Passing Rules:
+   - ALL data MUST flow through declared dependencies
+   - Access outputs ONLY through approved methods:
+     * Python: outputs["ID"]["raw_response"] 
+     * Bash: $OUTPUT_ID
+     * Reasoning: {{outputs.ID.raw_response}}
+   - Plans WILL FAIL if data is passed through:
+     * Implicit execution order
+     * Undeclared dependencies
+     * Direct variable access
+5. Response Formats:
    - Reasoning jobs return either:
      * XML <actions> plan for subsequent steps
      * JSON data for direct answers (wrap in <response>)
    - XML takes precedence if detected
-5. Data Access Patterns:
-   - Python: json.loads(outputs["ID"]["raw_response"])
-   - Bash: $OUTPUT_ID
-   - Reasoning: {{outputs.ID.raw_response}}
 6. Error Handling:
    - Validate JSON parsing in Python
    - Declare ALL dependencies in depends_on
    - Handle missing dependencies explicitly
+   - REJECT any plan that doesn't explicitly declare ALL data dependencies
 
-Example valid structure:
+Example valid structure with proper data flow:
 <actions>
   <request_input id="style" desc="Preferred writing style?"/>
-  <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet">
+  
+  <!-- Explicit dependency on 'style' input -->
+  <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet" depends_on="style">
     <content>Generate {{outputs.style}} formatted response</content>
   </action>
+  
+  <!-- Python script depends on reasoning result -->
   <action type="python" id="2" depends_on="1">
     <content>
 import json
+# PROPER data access through outputs dict
 try:
     data = json.loads(outputs["1"]["raw_response"])
-    result = data.get("formatted_text", "No text found")
+    result = data["formatted_text"] 
 except Exception as e:
     result = f"Error: {str(e)}"
 print(result)
     </content>
+  </action>
+  
+  <!-- Bash command depends on Python output -->
+  <action type="bash" id="3" depends_on="2">
+    <content>echo "Final result: $OUTPUT_2"</content>
   </action>
 </actions>"""
                             else:  # Subsequent reasoning queries
