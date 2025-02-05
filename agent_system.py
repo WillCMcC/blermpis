@@ -154,7 +154,7 @@ class Agent:
 2. Subsequent actions can specify models:
    - deepseek/deepseek-r1: Fast general reasoning (default)
    - anthropic/claude-3.5-sonnet: Complex analysis/long-form content
-   - meta-llama/llama-3-405b-instruct: Creative writing
+   - meta-llama/llama-3.1-405b-instruct: Creative writing
 3. XML Structure:
    - Wrap ALL steps in <actions> tags
    - Required tags:
