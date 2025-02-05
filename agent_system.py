@@ -9,7 +9,7 @@ from openai import OpenAI
 
 DEEPSEEK_API_KEY='sk-c4e470b3ca36497d87cabd72c79b4fcf'
 OPENROUTER_API_KEY='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'
-models = ['anthropic/claude-3.5-sonnet', 'deepseek/deepseek-r1', 'meta-llama/llama-3.1-405b-instruct']
+
 @dataclass
 class Job:
     id: str
@@ -152,9 +152,11 @@ class Agent:
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
 1. First action (id=0) MUST use model="deepseek/deepseek-r1"
 2. Subsequent actions can specify models:
-   - deepseek/deepseek-r1: Fast general reasoning (default)
+   - deepseek/deepseek-r1: slow general reasoning (default)
+   - openai/o1-mini: fast general reasoning (default)
    - anthropic/claude-3.5-sonnet: Complex analysis/long-form content
    - meta-llama/llama-3.1-405b-instruct: Creative writing
+   - meta-llama/llama-3.3-70b-instruct: Faster creative writing
 3. XML Structure:
    - Start with <?xml version="1.0"?>
    - Wrap ALL steps in <actions> tags
@@ -231,7 +233,6 @@ except Exception as e:
                             # Use job-specific model if specified, else deepseek-r1
                             # Force deepseek-r1 for initial planning job
                             model = job.model if job.id != "0" else "deepseek/deepseek-r1"
-                            
                             response = client.chat.completions.create(
                                 model=model,
                                 messages=[
