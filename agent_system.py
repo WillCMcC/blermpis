@@ -284,6 +284,8 @@ except Exception as e:
                     # Remove from queue whether successful or failed
                     self.job_queue.remove(job)
                     # Improve error parsing for API responses
+                    if not self.job_queue:  # If this was the last job, dump output
+                        self._dump_output()
                     if "401" in str(e):
                         print("\n🔑 Authentication Failed - Verify:")
                         print("1. You have a valid DeepSeek API key")
