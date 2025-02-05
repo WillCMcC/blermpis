@@ -48,7 +48,7 @@ class Agent:
             depends_on = action.get('depends_on', '').split(',') if action.get('depends_on') else []
             
             # Add implicit dependencies from template variables
-            template_deps = re.findall(r'\{\{outputs\.(\d+)\}\}', content)
+            template_deps = re.findall(r'\{\{outputs\.(\w+)\}\}', content)  # Allow alphanumeric IDs
             depends_on += template_deps
             
             # Remove duplicates and empty strings
@@ -247,12 +247,16 @@ except Exception as e:
                             else:  # Subsequent reasoning queries
                                 system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags."""
 
-                            # Substitute template variables
-                            from string import Template
-                            job_content = Template(job.content).safe_substitute({
-                                f'outputs.{dep_id}': str(self.outputs.get(dep_id, {}).get('raw_response', ''))
+                            # Handle {{outputs.ID}} and {{outputs.ID.raw_response}} patterns
+                            substitutions = {
+                                dep_id: str(self.outputs.get(dep_id, {}).get('raw_response', ''))
                                 for dep_id in job.depends_on
-                            })
+                            }
+                            job_content = re.sub(
+                                r'\{\{outputs\.(\w+)(\.raw_response)?\}\}',
+                                lambda m: substitutions.get(m.group(1), 'MISSING_OUTPUT'),
+                                job.content
+                            )
 
                             # Use job-specific model if specified, else deepseek-r1
                             # Force deepseek-r1 for initial planning job
