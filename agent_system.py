@@ -105,11 +105,13 @@ class Agent:
                         sys.stdout = buffer = StringIO()
                         
                         try:
+                            import json  # Ensure json is available
                             locs = {
                                 'outputs': {dep: self.outputs.get(dep) for dep in job.depends_on},
                                 'agent': self,  # Add agent reference
                                 'model_call': lambda query: self._execute_reasoning_subjob(query, job.id),
-                                'get_output': lambda key: self.outputs.get(key)
+                                'get_output': lambda key: self.outputs.get(key),
+                                'json': json  # Make json available to scripts
                             }
                             exec(job.content, globals(), locs)
                             output = buffer.getvalue()
@@ -154,17 +156,21 @@ class Agent:
    - llama-3.1-405b: Creative writing tasks
 2. Add model="MODEL_NAME" to <action> tags when appropriate
 3. First plan generation (id=0) must always use deepseek-r1
-4. Python scripts MUST declare ALL referenced outputs in depends_on
-   - Example: If using outputs["1"]["raw_response"], include depends_on="1"
-2. Add explicit depends_on for ALL cross-job references
-3. Python script outputs are stored as dictionaries in outputs["JOB_ID"] containing:
-   - 'output': String containing all printed content 
-   - 'variables': Dictionary of variables defined in the script
-   Access printed output with outputs["X"]["output"]
-4. Reasoning job responses are stored in outputs["JOB_ID"]["raw_response"]
-5. Bash commands access previous results via $OUTPUT_JOB_ID variables
-6. Reasoning steps reference previous outputs as {{outputs.JOB_ID.raw_response}}
-7. Python scripts access reasoning responses via outputs["JOB_ID"]["raw_response"]
+4. Python scripts MUST:
+   - Declare ALL referenced job IDs in depends_on
+   - Parse JSON responses: content = json.loads(outputs["JOB_ID"]["raw_response"])
+   - Access data using parsed dictionary: content.get('key')
+   - Include error handling for JSON parsing
+5. Reasoning jobs MUST:
+   - Return valid JSON strings
+   - Format complex data as nested JSON objects
+6. Data access patterns:
+   - Python: First parse JSON then access keys
+     content = json.loads(outputs["JOB_ID"]["raw_response"])
+     title = content.get('title')
+   - Reasoning: Reference JSON keys in templates
+     {{outputs.JOB_ID.raw_response}} for raw JSON string
+   - Bash: Use $OUTPUT_JOB_ID for raw output
 8. Use these XML tags:
    - <actions>: Container for all steps (required)
    - <action type="TYPE" id="ID" depends_on="ID1,ID2">: Single step with:
