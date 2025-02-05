@@ -185,11 +185,17 @@ class Agent:
 10. Ensure consistency between steps in terms of data storage and access formats
 11. Example valid structure:
 <actions>
-  <action type="reasoning" id="1" desc="Film analysis">
-    <content>Compare {{outputs.2}} and {{outputs.3}}...</content>
+  <action type="reasoning" id="1" model="deepseek/deepseek-r1">
+    <content>Generate a JSON object with a "quote" and "author"</content>
   </action>
-  <action type="python" id="2" depends_on="0,1">
-    <content>final = outputs["1"]["output"] + "\n" + outputs["0"]["output"]</content>
+  <action type="python" id="2" depends_on="1">
+    <content>import json
+try:
+    response = json.loads(outputs["1"]["raw_response"])
+    quote = f'"{response["quote"]}" - {response["author"]}'
+except Exception as e:
+    quote = f"Error: {str(e)}"
+</content>
   </action>
 </actions>"""
                             else:  # Subsequent reasoning queries
