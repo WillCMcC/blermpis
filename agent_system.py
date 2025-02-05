@@ -157,7 +157,13 @@ class Agent:
    - anthropic/claude-3.5-sonnet: Complex analysis/long-form content
    - meta-llama/llama-3.1-405b-instruct: Creative writing
    - meta-llama/llama-3.3-70b-instruct: Faster creative writing
-3. XML Structure:
+3. Strict XML Formatting:
+   - NEVER use markdown code blocks (```xml) 
+   - ALWAYS start with <?xml version="1.0"?> as first line
+   - Remove ALL markdown formatting from XML
+   - Ensure proper XML escaping for special characters
+   - Validate XML structure before responding
+4. XML Structure:
    - Start with <?xml version="1.0"?>
    - Wrap ALL steps in <actions> tags
    - Required tags:
@@ -369,7 +375,23 @@ class AgentCLI(Cmd):
                     
                     response_content = ET.tostring(normalized, encoding='unicode')
                 
-                root = ET.fromstring(response_content)
+                # Pre-process to remove markdown code fences if present
+                if response_content.startswith('```xml'):
+                    response_content = response_content[6:].strip()
+                if response_content.endswith('```'):
+                    response_content = response_content[:-3].strip()
+
+                # Validate XML structure
+                try:
+                    root = ET.fromstring(response_content)
+                except ET.ParseError as e:
+                    print(f"\n❌ Invalid XML structure: {str(e)}")
+                    print("Common fixes:")
+                    print("1. Remove markdown code fences (```xml)")
+                    print("2. Ensure proper tag nesting")
+                    print("3. Escape special characters like & with &amp;")
+                    return
+
                 # Handle input requests first
                 inputs = {}
                 for req in root.findall('request_input'):
