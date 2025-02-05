@@ -172,7 +172,7 @@ class Agent:
    - Reasoning: Reference JSON keys in templates
      {{outputs.JOB_ID.raw_response}} for raw JSON string
    - Bash: Use $OUTPUT_JOB_ID for raw output
-8. Use these XML tags:
+7. Use these XML tags:
    - <actions>: Container for all steps (required)
    - <action type="TYPE" id="ID" depends_on="ID1,ID2">: Single step with:
        * type: "bash", "python", or "reasoning" 
@@ -183,15 +183,52 @@ class Agent:
 8. Wrap ALL steps in <actions> tags
 9. Use ONLY these types of actions
 10. Ensure consistency between steps in terms of data storage and access formats
-11. Example valid structure:
+
+11. Example final output pattern:
 <actions>
-  <action type="reasoning" id="1" desc="Film analysis">
-    <content>Compare {{outputs.2}} and {{outputs.3}}...</content>
+  <!-- Parse and combine data from previous steps -->
+  <action type="python" id="final" depends_on="1,2,3" model="deepseek/deepseek-r1">
+    <content>
+import json
+try:
+    # Parse all required outputs
+    data1 = json.loads(outputs["1"]["raw_response"])
+    data2 = json.loads(outputs["2"]["raw_response"])
+    analysis = json.loads(outputs["3"]["raw_response"])
+
+    # Combine results
+    final_output = {
+        "summary": f"{data1.get('title')}: {analysis.get('key_findings')}",
+        "stats": data2.get('metrics'),
+        "conclusion": analysis.get('conclusion')
+    }
+
+    # Write structured output to file
+    with open('final_report.json', 'w') as f:
+        json.dump(final_output, f, indent=2)
+
+    print("Report generated successfully")
+except json.JSONDecodeError as e:
+    print(f"JSON parsing error: {e}")
+except IOError as e:
+    print(f"File writing error: {e}")
+    </content>
   </action>
-  <action type="python" id="2" depends_on="0,1">
-    <content>final = outputs["1"]["output"] + "\n" + outputs["0"]["output"]</content>
+  
+  <!-- Bash action to display result -->
+  <action type="bash" id="show" depends_on="final">
+    <content>cat final_report.json</content>
   </action>
-</actions>"""
+</actions>
+
+12. Ensure ALL JSON parsing uses:
+    content = json.loads(outputs["JOB_ID"]["raw_response"])
+    value = content.get('key')
+
+13. File outputs MUST:
+    - Be created in Python actions
+    - Use full path if writing to specific locations
+    - Include error handling for file operations"""
                             else:  # Subsequent reasoning queries
                                 system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags."""
 
