@@ -156,6 +156,7 @@ class Agent:
    - anthropic/claude-3.5-sonnet: Complex analysis/long-form content
    - meta-llama/llama-3.1-405b-instruct: Creative writing
 3. XML Structure:
+   - Start with <?xml version="1.0"?>
    - Wrap ALL steps in <actions> tags
    - Required tags:
      * <actions>: Container for all steps
@@ -185,31 +186,36 @@ class Agent:
    - REJECT any plan that doesn't explicitly declare ALL data dependencies
 
 Example valid structure with proper data flow:
+<?xml version="1.0"?>
 <actions>
-  <request_input id="style" desc="Preferred writing style?"/>
+  <!-- Collect required inputs FIRST -->
+  <request_input id="priority" desc="Analysis focus (technical/artistic/historical)?"/>
   
-  <!-- Explicit dependency on 'style' input -->
-  <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet" depends_on="style">
-    <content>Generate {{outputs.style}} formatted response</content>
+  <!-- Planning job with explicit input dependency -->
+  <action type="reasoning" id="plan" model="deepseek/deepseek-r1" depends_on="priority">
+    <content>Create outline focused on {{outputs.priority}} aspects...</content>
   </action>
-  
-  <!-- Python script depends on reasoning result -->
+
+  <!-- Content generation with proper dependency chain -->
+  <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet" depends_on="plan">
+    <content>Expand {{outputs.plan.raw_response}} into detailed analysis...</content>
+  </action>
+
+  <!-- Python processing with proper output handling -->
   <action type="python" id="2" depends_on="1">
     <content>
 import json
-# PROPER data access through outputs dict
 try:
     data = json.loads(outputs["1"]["raw_response"])
-    result = data["formatted_text"] 
+    print(f"Processed result: {data['analysis']}")
 except Exception as e:
-    result = f"Error: {str(e)}"
-print(result)
+    print(f"Error processing output: {str(e)}")
     </content>
   </action>
-  
-  <!-- Bash command depends on Python output -->
+
+  <!-- Final output with proper dependency -->
   <action type="bash" id="3" depends_on="2">
-    <content>echo "Final result: $OUTPUT_2"</content>
+    <content>echo "Analysis complete: $OUTPUT_2"</content>
   </action>
 </actions>"""
                             else:  # Subsequent reasoning queries
