@@ -151,7 +151,7 @@ class Agent:
 1. Choose the most appropriate model for each reasoning task using the model="MODEL_NAME" attribute
    - deepseek-r1: Fast, affordable general reasoning (default)
    - claude-3.5-sonnet: Complex analysis/long-form content
-   - llama-3.1-405b: Coding/structured data tasks
+   - llama-3.1-405b: Creative writing tasks
 2. Add model="MODEL_NAME" to <action> tags when appropriate
 3. First plan generation (id=0) must always use deepseek-r1
 4. Python scripts MUST declare ALL referenced outputs in depends_on
