@@ -28,6 +28,7 @@ class Agent:
     def __init__(self):
         self.job_queue = []
         self.outputs = {}  # Stores results of completed jobs
+        self.output_buffer = []  # Global output accumulator
         
     def add_job(self, action_xml: str):
         root = ET.fromstring(action_xml)
@@ -66,6 +67,20 @@ class Agent:
                 model=model  # Add model parameter
             ))
     
+    def _dump_output(self):
+        """Write accumulated output to timestamped file when all jobs complete"""
+        if not self.output_buffer:
+            return
+            
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"output_{timestamp}.txt"
+        
+        with open(filename, 'w') as f:
+            f.write('\n'.join(self.output_buffer))
+            
+        print(f"\n📦 Output bundle saved to {filename}")
+
     def _execute_reasoning_subjob(self, query, parent_id):
         """Handle nested model calls from Python scripts"""
         subjob_id = f"{parent_id}_sub"
@@ -100,7 +115,9 @@ class Agent:
                         )
                         # Clean ANSI escape codes
                         clean_output = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', result.stdout)
-                        self.outputs[job.id] = clean_output.strip()
+                        clean_output = clean_output.strip()
+                        self.outputs[job.id] = clean_output
+                        self.output_buffer.append(clean_output)
                     elif job.type == 'python':
                         # Capture printed output
                         import sys
@@ -115,10 +132,12 @@ class Agent:
                                 'agent': self,  # Add agent reference
                                 'model_call': lambda query: self._execute_reasoning_subjob(query, job.id),
                                 'get_output': lambda key: self.outputs.get(key),
-                                'json': json  # Make json available to scripts
+                                'json': json,  # Make json available to scripts
+                                'append_output': lambda text: self.output_buffer.append(str(text))
                             }
                             exec(job.content, globals(), locs)
                             output = buffer.getvalue()
+                            self.output_buffer.append(output)
                             # Store both variables and output
                             self.outputs[job.id] = {
                                 'output': output,
@@ -258,6 +277,7 @@ except Exception as e:
                             'raw_response': response_content,
                             'response_type': 'actions' if '<actions>' in response_content else 'content'
                         }
+                        self.output_buffer.append(response_content)
                     job.status = 'completed'
                 except Exception as e:
                     job.status = f'failed: {str(e)}'
