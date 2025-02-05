@@ -9,6 +9,10 @@ from openai import OpenAI
 
 DEEPSEEK_API_KEY='sk-c4e470b3ca36497d87cabd72c79b4fcf'
 OPENROUTER_API_KEY='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'
+GROQ_API_KEY='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'
+
+OPENROUTER_API_URL='https://openrouter.ai/api/v1'
+GROQ_API_URL='https://api.groq.com/openai/v1'
 
 @dataclass
 class Job:
@@ -142,8 +146,8 @@ class Agent:
                             raise ValueError("DEEPSEEK_API_KEY environment variable not set")
                             
                         client = OpenAI(
-                            api_key=api_key,
-                            base_url="https://openrouter.ai/api/v1"
+                            api_key=GROQ_API_KEY,
+                            base_url=GROQ_API_URL,
                         )
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
@@ -153,10 +157,9 @@ class Agent:
 1. First action (id=0) MUST use model="deepseek/deepseek-r1"
 2. Subsequent actions can specify models:
    - deepseek/deepseek-r1: slow general reasoning (default)
-   - openai/o1-mini: fast general reasoning (default)
+   - openai/o1-mini: fast general reasoning 
    - anthropic/claude-3.5-sonnet: Complex analysis/long-form content
    - meta-llama/llama-3.1-405b-instruct: Creative writing
-   - meta-llama/llama-3.3-70b-instruct: Faster creative writing
 3. Strict XML Formatting:
    - NEVER use markdown code blocks (```xml) 
    - ALWAYS start with <?xml version="1.0"?> as first line
@@ -170,7 +173,6 @@ class Agent:
      * <actions>: Container for all steps
      * <action type="TYPE" id="ID" model="MODEL">: Single step
      * <content>: Contains instructions/code
-     * <request_input id="ID" desc="PROMPT">: User input
    - Action types: "bash", "python", "reasoning"
 4. Strict Data Passing Rules:
    - ALL data MUST flow through declared dependencies
@@ -196,12 +198,10 @@ class Agent:
 Example valid structure with proper data flow:
 <?xml version="1.0"?>
 <actions>
-  <!-- Collect required inputs FIRST -->
-  <request_input id="priority" desc="Analysis focus (technical/artistic/historical)?"/>
   
   <!-- Planning job with explicit input dependency -->
   <action type="reasoning" id="plan" model="deepseek/deepseek-r1" depends_on="priority">
-    <content>Create outline focused on {{outputs.priority}} aspects...</content>
+    <content>Create outline focused on technical aspects...</content>
   </action>
 
   <!-- Content generation with proper dependency chain -->
@@ -238,7 +238,8 @@ except Exception as e:
 
                             # Use job-specific model if specified, else deepseek-r1
                             # Force deepseek-r1 for initial planning job
-                            model = job.model if job.id != "0" else "deepseek/deepseek-r1"
+                            # model = job.model or 'deepseek/deepseek-r1'
+                            model = 'llama-3.3-70b-specdec'
                             response = client.chat.completions.create(
                                 model=model,
                                 messages=[
@@ -304,9 +305,8 @@ class AgentCLI(Cmd):
             self._handle_response()
         else:
             print("Continue with your query or 'exit' to quit")
-
     def _handle_response(self):
-        """Process and display results"""
+        #Process and display results
         # Add API key check first
         if not DEEPSEEK_API_KEY:
             print("\n❌ Missing DEEPSEEK_API_KEY environment variable")
@@ -320,61 +320,20 @@ class AgentCLI(Cmd):
         if initial_job and initial_job.status.startswith('failed'):
             print(f"\n❌ Initial processing failed: {initial_job.status.split(':', 1)[-1].strip()}")
             return
-            
+                
         last_output = self.agent.outputs.get("0")
         
         if not last_output:
             print("\n🔍 No response received - Possible API issues or empty response")
             print("Check your DEEPSEEK_API_KEY environment variable")
             return
-            
-        if last_output:
-            response_content = last_output['raw_response']
                 
-            # Handle direct responses from non-planning reasoning jobs
-            if last_output['response_type'] == 'content':
-                print("\n[Assistant Response]")
-                try:
-                    wrapped = f"<wrapper>{response_content}</wrapper>"
-                    root = ET.fromstring(wrapped)
-                    response_node = root.find('.//response')
-                    if response_node is not None and response_node.text:
-                        print(response_node.text.strip())
-                    else:
-                        print("Received empty response")
-                except ET.ParseError:
-                    print(response_content)
-                return
-                
-            print("\n[Proposed Actions]")
-            print(response_content)
-            
+        response_content = last_output['raw_response']
+        response_type = last_output.get('response_type')
+
+        # Handle actions type first
+        if response_type == 'actions' or '<actions>' in response_content:
             try:
-                
-                # Fix: Normalize XML structure if needed
-                if not response_content.startswith('<actions>'):
-                    # Wrap standalone commands in <actions><action> structure
-                    root = ET.fromstring(f"<wrapper>{response_content}</wrapper>")
-                    normalized = ET.Element('actions')
-                    action_id = 1  # Start after initial 0 job
-                    
-                    for elem in root:
-                        if elem.tag == 'request_input':  # Only skip input requests
-                            continue
-                        action = ET.SubElement(normalized, 'action', {
-                            'id': str(action_id),
-                            'type': elem.get('type', 'python'),  # Get existing type attribute
-                            'desc': elem.get('desc', '')
-                        })
-                        # Add output reference handling
-                        if elem.tag in ['python', 'bash']:
-                            action.set('output_ref', f'result_{action_id}')
-                        content = ET.SubElement(action, 'content')
-                        content.text = elem.text
-                        action_id += 1
-                    
-                    response_content = ET.tostring(normalized, encoding='unicode')
-                
                 # Pre-process to remove markdown code fences if present
                 if response_content.startswith('```xml'):
                     response_content = response_content[6:].strip()
@@ -430,9 +389,21 @@ class AgentCLI(Cmd):
                     
             except ET.ParseError:
                 print("\n[Final Answer]")
-                print(last_output)
-        else:
-            print("No response received")
+                print(response_content)
+            return
+        
+        # Only handle as content if not actions
+        print("\n[Assistant Response]")
+        try:
+            wrapped = f"<wrapper>{response_content}</wrapper>"
+            root = ET.fromstring(wrapped)
+            response_node = root.find('.//response')
+            if response_node is not None and response_node.text:
+                print(response_node.text.strip())
+            else:
+                print("Received empty response")
+        except ET.ParseError:
+            print(response_content)
 
     def _show_results(self):
         """Display job outcomes with improved formatting"""
