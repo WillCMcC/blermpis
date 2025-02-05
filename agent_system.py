@@ -151,9 +151,10 @@ class Agent:
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
 1. Choose the most appropriate model for each reasoning task using the model="MODEL_NAME" attribute
-   - deepseek-r1: Fast, affordable general reasoning (default)
-   - claude-3.5-sonnet: Complex analysis/long-form content
-   - llama-3.1-405b: Creative writing tasks
+   - deepseek/deepseek-r1: Fast, affordable general reasoning (default)
+   - anthropic/claude-3.5-sonnet: Complex analysis/long-form content
+   - meta-llama/llama-3.1-405b-instruct: Creative writing tasks
+   - meta-llama/llama-3.1-70b-instruct: Fast writing tasks
 2. Add model="MODEL_NAME" to <action> tags when appropriate
 3. First plan generation (id=0) must always use deepseek-r1
 4. Python scripts MUST:
