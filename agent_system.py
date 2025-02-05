@@ -150,52 +150,49 @@ class Agent:
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
-1. Choose the most appropriate model for each reasoning task using the model="MODEL_NAME" attribute
-   - deepseek/deepseek-r1: Fast, affordable general reasoning (default)
+1. First action (id=0) MUST use model="deepseek/deepseek-r1"
+2. Subsequent actions can specify models:
+   - deepseek/deepseek-r1: Fast general reasoning (default)
    - anthropic/claude-3.5-sonnet: Complex analysis/long-form content
-   - meta-llama/llama-3.1-405b-instruct: Creative writing tasks
-   - meta-llama/llama-3.1-70b-instruct: Fast writing tasks
-2. Add model="MODEL_NAME" to <action> tags when appropriate
-3. First plan generation (id=0) must always use deepseek-r1
-4. Python scripts MUST:
-   - Declare ALL referenced job IDs in depends_on
-   - Parse JSON responses: content = json.loads(outputs["JOB_ID"]["raw_response"])
-   - Access data using parsed dictionary: content.get('key')
-   - Include error handling for JSON parsing
-5. Reasoning jobs MUST:
-   - Return valid JSON strings
-   - Format complex data as nested JSON objects
-6. Data access patterns:
-   - Python: First parse JSON then access keys
-     content = json.loads(outputs["JOB_ID"]["raw_response"])
-     title = content.get('title')
-   - Reasoning: Reference JSON keys in templates
-     {{outputs.JOB_ID.raw_response}} for raw JSON string
-   - Bash: Use $OUTPUT_JOB_ID for raw output
-8. Use these XML tags:
-   - <actions>: Container for all steps (required)
-   - <action type="TYPE" id="ID" depends_on="ID1,ID2">: Single step with:
-       * type: "bash", "python", or "reasoning" 
-       * id: Unique identifier (numbers recommended)
-       * depends_on: Comma-separated prerequisite IDs (optional)
-   - <content>: Contains step instructions/text (required inside each action)
-   - <request_input id="ID" desc="Prompt">: Get user input (use sparingly)
-8. Wrap ALL steps in <actions> tags
-9. Use ONLY these types of actions
-10. Ensure consistency between steps in terms of data storage and access formats
-11. Example valid structure:
+   - meta-llama/llama-3-405b-instruct: Creative writing
+3. XML Structure:
+   - Wrap ALL steps in <actions> tags
+   - Required tags:
+     * <actions>: Container for all steps
+     * <action type="TYPE" id="ID" model="MODEL">: Single step
+     * <content>: Contains instructions/code
+     * <request_input id="ID" desc="PROMPT">: User input
+   - Action types: "bash", "python", "reasoning"
+4. Response Formats:
+   - Reasoning jobs return either:
+     * XML <actions> plan for subsequent steps
+     * JSON data for direct answers (wrap in <response>)
+   - XML takes precedence if detected
+5. Data Access Patterns:
+   - Python: json.loads(outputs["ID"]["raw_response"])
+   - Bash: $OUTPUT_ID
+   - Reasoning: {{outputs.ID.raw_response}}
+6. Error Handling:
+   - Validate JSON parsing in Python
+   - Declare ALL dependencies in depends_on
+   - Handle missing dependencies explicitly
+
+Example valid structure:
 <actions>
-  <action type="reasoning" id="1" model="deepseek/deepseek-r1">
-    <content>Generate a JSON object with a "quote" and "author"</content>
+  <request_input id="style" desc="Preferred writing style?"/>
+  <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet">
+    <content>Generate {{outputs.style}} formatted response</content>
   </action>
   <action type="python" id="2" depends_on="1">
-    <content>import json
+    <content>
+import json
 try:
-    response = json.loads(outputs["1"]["raw_response"])
-    quote = f'"{response["quote"]}" - {response["author"]}'
+    data = json.loads(outputs["1"]["raw_response"])
+    result = data.get("formatted_text", "No text found")
 except Exception as e:
-    quote = f"Error: {str(e)}"
-</content>
+    result = f"Error: {str(e)}"
+print(result)
+    </content>
   </action>
 </actions>"""
                             else:  # Subsequent reasoning queries
