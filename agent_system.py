@@ -403,11 +403,13 @@ except Exception as e:
                     # Remove from queue whether successful or failed
                     self.job_queue.remove(job)
                     error_lines = [
-                        f"\n🚨 JOB FAILURE: {job.id} ({job.type.upper()})",
+                        f"🚨 JOB FAILURE: {job.id} ({job.type.upper()})",
                         f"📝 Error: {str(e)}",
                         f"🔗 Dependencies: {', '.join(job.depends_on) or 'none'}",
                         f"📄 Content start: {job.content[:100].replace('\n', ' ')}..."
                     ]
+                    # Add newline before printing
+                    error_lines[0] = "\n" + error_lines[0]
                     if job.type == 'reasoning' and job.response_format == 'json':
                         error_lines.append("🔍 JSON TIP: Check if response matches required schema")
                     print('\n'.join(error_lines))
