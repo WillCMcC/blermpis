@@ -340,7 +340,7 @@ except Exception as e:
                         response_content = response.choices[0].message.content
                         
                         # Add response logging before storing
-                        print(f"[Raw Reasoning Response]\n{response_content}\n{'='*50}")
+                        # print(f"[Raw Reasoning Response]\n{response_content}\n{'='*50}")
                         # Store response with type information
                         output_data = {
                             'raw_response': response_content,
