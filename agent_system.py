@@ -125,8 +125,9 @@ class Agent:
                             exec(job.content, globals(), locs)
                             output = buffer.getvalue()
                             self.output_buffer.append(output)
-                            # Store both variables and output
+                            # Store output with raw_response for consistent access
                             self.outputs[job.id] = {
+                                'raw_response': output,  # Add raw_response field
                                 'output': output,
                                 'variables': locs
                             }
@@ -136,6 +137,7 @@ class Agent:
                                 error_msg += "\n🔑 Missing dependency - Verify:"
                                 error_msg += "\n1. All referenced jobs are in depends_on"
                                 error_msg += "\n2. Previous jobs completed successfully"
+                                error_msg += "\n3. Python scripts use outputs['ID']['raw_response']"
                             output = f"Python Error: {error_msg}"
                             self.outputs[job.id] = {
                                 'error': output,
@@ -235,7 +237,7 @@ except Exception as e:
 
                             # Handle {{outputs.ID}} and {{outputs.ID.raw_response}} patterns
                             substitutions = {
-                                dep_id: str(self.outputs.get(dep_id, {}).get('raw_response', ''))
+                                dep_id: str(self.outputs.get(dep_id, {}).get('raw_response', f'MISSING_OUTPUT_FOR_{dep_id}'))
                                 for dep_id in job.depends_on
                             }
                             job_content = re.sub(
