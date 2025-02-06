@@ -163,9 +163,10 @@ class Agent:
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
 1. Actions can specify models:
-   - google/gemini-2.0-flash-001: general reasoning, largest context -- best for stitching together many other outputs
+   - google/gemini-2.0-flash-001: reasoning, largest context window for long document polishing
+   - openai/gpt-4o: best at trivia and general knowledge 
    - openai/o1-mini: fast general reasoning 
-   - meta-llama/llama-3.1-405b-instruct: Creative writing
+   - meta-llama/llama-3.1-405b-instruct: General writing
 2. Strict XML Formatting:
    - NEVER use markdown code blocks (```xml) 
    - ALWAYS start with <?xml version="1.0"?> as first line
@@ -277,7 +278,7 @@ except Exception as e:
                             model = job.model or 'google/gemini-2.0-flash-001'
                             # model = 'google/gemini-2.0-flash-001'
                             response = client.chat.completions.create(
-                                model='google/gemini-2.0-flash-001',
+                                model=model,
                                 messages=[
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": job_content}
