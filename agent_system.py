@@ -142,8 +142,10 @@ class Agent:
                             if "KeyError" in error_msg:
                                 error_msg += "\n🔑 Missing dependency - Verify:"
                                 error_msg += "\n1. Use outputs['ID']['response_json'] for JSON data"
-                                error_msg += "\n2. All dependencies declared in depends_on"
-                                error_msg += "\n3. Previous jobs completed successfully"
+                                error_msg += "\n2. Previous job used format=\"json\" attribute"
+                                error_msg += "\n3. All dependencies declared in depends_on"
+                            elif "json_error" in str(e):
+                                error_msg += "\n🗃️ JSON Error - Check if previous reasoning job used format=\"json\""
                             output = f"Python Error: {error_msg}"
                             self.outputs[job.id] = {
                                 'error': output,
@@ -255,12 +257,11 @@ except wikipedia.exceptions.DisambiguationError as e:
   <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet" depends_on="plan">
     <content>Expand {{outputs.plan.raw_response}} into detailed analysis...</content>
   </action>
-  <action type="python" id="2" depends_on="1">
+  <action type="python" id="2" depends_on="plan">
     <content>
-import json
 try:
-    data = json.loads(outputs["1"]["raw_response"])
-    print(f"Processed result: {data['analysis']}")
+    data = outputs["plan"]["response_json"]
+    print(f"Processed result: {data['content']}")
 except Exception as e:
     print(f"Error processing output: {str(e)}")
     </content>
@@ -353,8 +354,11 @@ except Exception as e:
                         if job.response_format == 'json':
                             try:
                                 output_data['response_json'] = json.loads(response_content)
+                                # Add validation for expected JSON structure
+                                if 'content' not in output_data['response_json']:
+                                    output_data['json_error'] = "Missing required 'content' field in JSON response"
                             except json.JSONDecodeError:
-                                output_data['json_error'] = "Invalid JSON response"
+                                output_data['json_error'] = "Invalid JSON response format"
                                 
                         self.outputs[job.id] = output_data
                         self.output_buffer.append(response_content)
