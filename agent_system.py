@@ -190,68 +190,44 @@ class Agent:
 
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
-                                system_msg = """You are an AI planner. Generate XML action plans with these requirements:
+                                system_msg = """You are an AI planner. Generate XML action plans with these guidelines:
 
-STRICT JSON RULES:
-- Use format="json" ONLY when:
-  1. Output will be processed by Python code
-  2. Structured data is required for subsequent steps
-  3. Exact field names are needed
+CORE PRINCIPLES:
+1. Prefer simple, linear workflows unless complexity is required
+2. Use appropriate formats for data interchange:
+   - JSON when Python code needs structured data
+   - Raw text for human-readable outputs
+3. Ensure clear dependency declarations
 
-- When using format="json":
-  → MUST include <content> containing the EXACT JSON structure required
-  → MUST have a Python job that processes outputs["ID"]["response_json"]["content"]
-  → MUST validate structure in Python with try/except blocks
+JSON USAGE GUIDELINES (use only when needed):
+- Consider format="json" when:
+  * Output requires specific field names
+  * Data will be processed programmatically
+  * Exact structure validation is critical
 
-- JSON ACCESS PATTERNS:
-  Bash: Never access JSON directly - use $OUTPUT_ID for raw text
-  Python: ALWAYS use outputs["JOB_ID"]["response_json"]["content"]
-  Reasoning: Use {{outputs.JOB_ID.response_json.content}} for specific fields
+DATA FLOW RULES:
+- All data MUST flow through declared dependencies
+- Access outputs through:
+  * Bash: $OUTPUT_ID
+  * Python: outputs["ID"]["raw_response"] 
+  * Reasoning: {{outputs.ID.raw_response}}
 
-EXAMPLE VALID USAGE:
-<action type="reasoning" id="analysis" model="google/gemini-2.0-flash-001" format="json">
-  <content>Return JSON with { "summary": "text", "score": 0-100 }</content>
+PLAN EXAMPLES:
+<action type="reasoning" id="analysis" model="google/gemini-2.0-flash-001">
+  <content>Generate market analysis report</content>
 </action>
 
-<action type="python" id="process" depends_on="analysis">
+<action type="reasoning" id="structured_analysis" model="anthropic/claude-3-haiku" format="json">
+  <content>Return JSON with { "trends": [], "summary": "" }</content>
+</action>
+
+<action type="python" id="process" depends_on="structured_analysis">
   <content>
 try:
-    data = outputs["analysis"]["response_json"]["content"] 
-    print(f"Score: {data['score']}/100")
-except KeyError:
-    print("ERROR: Missing expected JSON fields")
+    data = outputs["structured_analysis"]["response_json"]["content"]
+    print(f"Found {len(data['trends'])} trends")
   </content>
-</action>
-
-3. Examples of VALID actions:
-   <action type="reasoning" id="analysis" model="google/gemini-2.0-flash-001" format="json">
-   <action type="python" id="process_data" depends_on="analysis">
-   <action type="bash" id="cleanup">
-
-4. Examples of INVALID actions:
-   <action type="python" model="gpt-4"> ❌ (no models on python)
-   <action type="bash" format="json"> ❌ (no formats on bash)
-   <action type="reasoning"> ❌ (missing model)
-4. Strict Data Passing Rules:
-   - ALL data MUST flow through declared dependencies
-   - Access outputs ONLY through approved methods:
-     * Python: outputs["ID"]["raw_response"] 
-     * Bash: $OUTPUT_ID
-     * Reasoning: {{outputs.ID.raw_response}}
-   - Plans WILL FAIL if data is passed through:
-     * Implicit execution order
-     * Undeclared dependencies
-     * Direct variable access
-5. JSON Format Actions:
-   - Add format="json" to action tag
-   - Specify required JSON structure in content
-   - Response must match structure exactly
-   - ALWAYS use this to pipe reasoning outputs into python steps
-   - NEVER ask a normal reasoning job for JSON data
-6. When asked to produce a document, use the reasoning model to generate an outline 
-    - following steps can reference these outlines to fill them in piece by piece
-    - Prioritize making multiple calls when asked to generate long form content. Aim for chunks of 1000-2000 words maximum
-    - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled
+</action>"""
     """
 
                                 # Create messages array with examples
