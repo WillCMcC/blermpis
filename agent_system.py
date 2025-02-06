@@ -159,6 +159,17 @@ class Agent:
                         )
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
+                            # Handle {{outputs.ID}} and {{outputs.ID.raw_response}} patterns
+                            substitutions = {
+                                dep_id: str(self.outputs.get(dep_id, {}).get('raw_response', f'MISSING_OUTPUT_FOR_{dep_id}'))
+                                for dep_id in job.depends_on
+                            }
+                            processed_content = re.sub(
+                                r'\{\{outputs\.(\w+)(\.raw_response)?\}\}',
+                                lambda m: substitutions.get(m.group(1), 'MISSING_OUTPUT'),
+                                job.content
+                            )
+
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
@@ -247,25 +258,14 @@ except Exception as e:
     </content>
   </action>
 </actions>"""},
-                                    {"role": "user", "content": job_content}
+                                    {"role": "user", "content": processed_content}
                                 ]
                             else:  # Subsequent reasoning queries
                                 system_msg = """You are a helpful assistant. Provide a detailed response."""
                                 messages = [
                                     {"role": "system", "content": system_msg},
-                                    {"role": "user", "content": job_content}
+                                    {"role": "user", "content": processed_content}
                                 ]
-
-                            # Handle {{outputs.ID}} and {{outputs.ID.raw_response}} patterns
-                            substitutions = {
-                                dep_id: str(self.outputs.get(dep_id, {}).get('raw_response', f'MISSING_OUTPUT_FOR_{dep_id}'))
-                                for dep_id in job.depends_on
-                            }
-                            job_content = re.sub(
-                                r'\{\{outputs\.(\w+)(\.raw_response)?\}\}',
-                                lambda m: substitutions.get(m.group(1), 'MISSING_OUTPUT'),
-                                job.content
-                            )
 
                             # Use job-specific model if specified, else deepseek-r1
                             # Force deepseek-r1 for initial planning job
