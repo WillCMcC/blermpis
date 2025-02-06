@@ -461,13 +461,11 @@ class AgentCLI(Cmd):
                 print("\n" + "="*50 + "\n📋 Generated Plan\n" + "="*50)
                 for job in self.agent.job_queue:
                     if job.status == 'pending':
-                        prefix = "🖥️  BASH" if job.type == 'bash' else \
-                                "🐍 PYTHON" if job.type == 'python' else \
-                                "💭 REASONING"
-                        print(f"\n{prefix} ACTION [ID {job.id}]:")
-                        print("-"*40)
-                        print(job.content)
-                        print("-"*40)
+                        icon = "🖥️" if job.type == 'bash' else "🐍" if job.type == 'python' else "💭"
+                        deps = f"Deps: {', '.join(job.depends_on) or 'none'}"
+                        model = f"Model: {job.model}" if job.model else ""
+                        content_preview = job.content.split('\n')[0][:80] + ("..." if len(job.content) > 80 else "")
+                        print(f"{icon} [{job.id}] {job.type.upper()} {model} | {deps} | {content_preview}")
 
                 user_input = input("\n🚀 Execute these actions? (y/n/R) ").lower()
                 if user_input == 'y':
@@ -509,37 +507,23 @@ class AgentCLI(Cmd):
             print(response_content)
 
     def _show_results(self):
-        """Display job outcomes with improved formatting"""
         print("\n" + "="*50 + "\n📊 Execution Results\n" + "="*50)
         for job in self.agent.job_queue:
-            if job.id == "0":  # Skip initial reasoning job
+            if job.id == "0":
                 continue
                 
-            result = self.agent.outputs.get(job.id, {})  # Default to empty dict
-            output = ""  # Initialize output variable
+            result = self.agent.outputs.get(job.id, {})
+            status_icon = "✅" if job.status == 'completed' else "❌"
+            icon = "🖥️" if job.type == 'bash' else "🐍" if job.type == 'python' else "💭"
+            model = f"Model: {job.model}" if job.model else ""
             
-            header = f"\n🔹 [{job.type.upper()} JOB {job.id}]"
-            command = ""
-
-            # Handle different result types safely
-            if isinstance(result, dict):
-                if job.type == 'python':
-                    output = f"\n🐍 Output:\n{result.get('output', 'No print output')}"
-                    command = f"\n📜 Script:\n{job.content}"
-                elif job.type == 'bash':
-                    output = f"\n📤 Output:\n{result.get('output', '')}" 
-                    command = f"\n⚡ Command:\n{job.content}"
-                else:  # Explicit handling for reasoning jobs
-                    response = result.get('raw_response', 'No response captured')
-                    output = f"\n💭 Response:\n{response}"
-            else:  # Handle legacy string outputs
-                output = f"\n⚠️ Raw Output:\n{result}"
-                
-            print(f"{header}{command}{output}")
+            # Get output preview
+            output = result.get('output') or result.get('raw_response') or str(result)
+            output_preview = (output[:80] + "...") if len(output) > 80 else output
             
-            if job.status.startswith('failed'):
-                print(f"\n🔥 Failure: {job.status.split(':', 1)[-1].strip()}")
-                
+            print(f"{status_icon} {icon} [{job.id}] {job.type.upper()} {model}")
+            print(f"   └─ {output_preview}")
+            
         # Clear state after processing
         self.agent.job_queue = []
         self.agent.outputs = {}
