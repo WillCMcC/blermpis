@@ -323,20 +323,20 @@ class AgentCLI(Cmd):
         if line.strip().lower() == 'exit':
             return self.do_exit('')
             
-        if self.initial_query is None:
-            self.initial_query = line
-            # Create first reasoning job
-            self.agent.add_job(f"""<actions>
-                <action id="0" type="reasoning">
-                    <content>Generate an XML action plan to: {line}</content>
-                </action>
-            </actions>""")
-            self.agent.process_queue()
-            self._handle_response()
-        else:
-            print("Continue with your query or 'exit' to quit")
+        # Reset agent state for new query
+        self.agent = Agent()  # Fresh agent instance
+        self.initial_query = None  # Reset query state
+        
+        # Create fresh reasoning job
+        self.agent.add_job(f"""<actions>
+            <action id="0" type="reasoning">
+                <content>Generate an XML action plan to: {line}</content>
+            </action>
+        </actions>""")
+        self.agent.process_queue()
+        self._handle_response()
     def _handle_response(self):
-        #Process and display results
+        """Process and display results"""
         # Add API key check first
         if not DEEPSEEK_API_KEY:
             print("\n❌ Missing DEEPSEEK_API_KEY environment variable")
@@ -466,6 +466,11 @@ class AgentCLI(Cmd):
             
             if job.status.startswith('failed'):
                 print(f"\n🔥 Failure: {job.status.split(':', 1)[-1].strip()}")
+                
+        # Clear state after processing
+        self.agent.job_queue = []
+        self.agent.outputs = {}
+        self.initial_query = None
     
     def do_exit(self, arg):
         """Exit the CLI"""
