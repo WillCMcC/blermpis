@@ -1,3 +1,4 @@
+import time
 from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 import subprocess
@@ -347,6 +348,9 @@ except Exception as e:
                                 messages[0]["content"] = system_msg
 
                         response = client.chat.completions.create(**api_params)
+                        if response.choices[0].finish_reason != 'stop':
+                            print(f"\n⚠️ API WARNING: Finish reason '{response.choices[0].finish_reason}'")
+                            print(f"   Token Usage: {response.usage}")
                         print(response)
                         response_content = response.choices[0].message.content
                         
@@ -375,22 +379,77 @@ except Exception as e:
                         self.output_buffer.append(response_content)
                     job.status = 'completed'
                 except Exception as e:
-                    job.status = f'failed: {str(e)}'
-                    # Remove from queue whether successful or failed
-                    self.job_queue.remove(job)
-                    # Pre-process content preview
-                    content_preview = job.content[:100].replace('\n', ' ')
+                    error_details = {
+                        'job_id': job.id,
+                        'job_type': job.type,
+                        'error_type': type(e).__name__,
+                        'error_msg': str(e),
+                        'dependencies': job.depends_on,
+                        'missing_deps': [d for d in job.depends_on if d not in self.outputs],
+                        'content_snippet': job.content[:200] + ('...' if len(job.content) > 200 else '')
+                    }
+                    
+                    if job.type == 'bash':
+                        error_details['command'] = job.content.split('\n')[0][:100]
+                    elif job.type == 'python':
+                        import traceback
+                        error_details['traceback'] = traceback.format_exc()
+                    elif job.type == 'reasoning':
+                        error_details['model'] = job.model
+                        error_details['response_format'] = job.response_format
+                    
+                    # Build rich error message
                     error_lines = [
-                        f"🚨 JOB FAILURE: {job.id} ({job.type.upper()})",
-                        f"📝 Error: {str(e)}",
-                        f"🔗 Dependencies: {', '.join(job.depends_on) or 'none'}",
-                        f"📄 Content start: {content_preview}..."
+                        "\n⚡️🔥 JOB FAILURE ANALYSIS 🔥⚡️",
+                        f"🧩 Job ID:    {job.id} ({job.type.upper()})",
+                        f"📛 Error Type: {error_details['error_type']}",
+                        f"📝 Message:    {error_details['error_msg']}",
                     ]
-                    # Add newline before printing
-                    error_lines[0] = "\n" + error_lines[0]
+                    
+                    if job.type == 'bash':
+                        error_lines.extend([
+                            "💻 Command Fragment:",
+                            f"   {error_details['command']}"
+                        ])
+                    elif job.type == 'python':
+                        error_lines.extend([
+                            "🐍 Python Traceback:",
+                            *[f"   {line}" for line in error_details['traceback'].split('\n') if line],
+                            "💻 Code Fragment:",
+                            *[f"   {line}" for line in error_details['content_snippet'].split('\n')[:3]]
+                        ])
+                    elif job.type == 'reasoning':
+                        error_lines.extend([
+                            f"🧠 Model: {job.model}",
+                            f"📤 Response Format: {job.response_format or 'text'}"
+                        ])
+                    
+                    if error_details['missing_deps']:
+                        error_lines.extend([
+                            "🔗 Missing Dependencies:",
+                            *[f"   - {dep}" for dep in error_details['missing_deps']]
+                        ])
+                    
                     if job.type == 'reasoning' and job.response_format == 'json':
-                        error_lines.append("🔍 JSON TIP: Check if response matches required schema")
+                        error_lines.extend([
+                            "📌 JSON Validation Tips:",
+                            "1. Check for trailing commas in objects/arrays",
+                            "2. Ensure all strings are properly quoted",
+                            "3. Verify response matches the exact schema requested"
+                        ])
+                    
+                    error_lines.append("="*50)
                     print('\n'.join(error_lines))
+                    
+                    # Store error details in output
+                    self.outputs[job.id] = {
+                        'error': error_details,
+                        'status': 'failed',
+                        'timestamp': time.time()
+                    }
+                    
+                    # Keep failed jobs in queue for inspection
+                    job.status = f'failed: {type(e).__name__}'
 
 class AgentCLI(Cmd):
     prompt = 'agent> '
