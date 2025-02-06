@@ -56,13 +56,15 @@ class Agent:
             # Remove duplicates and empty strings
             depends_on = list(set([d for d in depends_on if d]))
             
-            # Add model parameter extraction
-            model = action.get('model')  # Get model if specified
-            if job_type == 'reasoning' and not model:
-                model = 'google/gemini-2.0-flash-001'  # Default for reasoning
-
-            # Add format parameter extraction
-            response_format = action.get('format')
+            # Only allow model/format for reasoning jobs
+            if job_type == 'reasoning':
+                model = action.get('model') or 'google/gemini-2.0-flash-001'
+                response_format = action.get('format')
+            else:  # Python/bash jobs can't have model/format
+                model = None
+                response_format = None
+                if action.get('model') or action.get('format'):
+                    warnings.warn(f"Ignoring model/format on {job_type} job {job_id}")
             self.job_queue.append(Job(
                 id=job_id,
                 type=job_type,
@@ -139,9 +141,9 @@ class Agent:
                             error_msg = str(e)
                             if "KeyError" in error_msg:
                                 error_msg += "\n🔑 Missing dependency - Verify:"
-                                error_msg += "\n1. All referenced jobs are in depends_on"
-                                error_msg += "\n2. Previous jobs completed successfully"
-                                error_msg += "\n3. Python scripts use outputs['ID']['raw_response']"
+                                error_msg += "\n1. Use outputs['ID']['response_json'] for JSON data"
+                                error_msg += "\n2. All dependencies declared in depends_on"
+                                error_msg += "\n3. Previous jobs completed successfully"
                             output = f"Python Error: {error_msg}"
                             self.outputs[job.id] = {
                                 'error': output,
@@ -177,25 +179,26 @@ class Agent:
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
-1. Actions can specify models:
-   - google/gemini-2.0-flash-001: reasoning, largest context window for long document polishing
-   - openai/gpt-4o: best at trivia and general knowledge 
-   - openai/o1-mini: fast general reasoning 
-    - anthropic/claude-3.5-sonnet: creative writing and poetry
-2. Strict XML Formatting:
-   - NEVER use markdown code blocks (```xml) 
-   - ALWAYS start with <?xml version="1.0"?> as first line
-   - Remove ALL markdown formatting from XML
-   - Ensure proper XML escaping for special characters
-   - Validate XML structure before responding
-3. XML Structure:
-   - Start with <?xml version="1.0"?>
-   - Wrap ALL steps in <actions> tags
-   - Required tags:
-     * <actions>: Container for all steps
-     * <action type="TYPE" id="ID" model="MODEL">: Single step
-     * <content>: Contains instructions/code
-   - Action types: "bash", "python", "reasoning"
+1. Strict job type separation:
+   - model= only for 'reasoning' type
+   - format="json" ONLY for 'reasoning' type
+   - Python/Bash jobs CANNOT have model or format attributes
+
+2. JSON handling rules:
+   - ALWAYS use format="json" on reasoning jobs needing structured data
+   - NEVER use json format on python/bash jobs
+   - JSON responses MUST be processed by python scripts using:
+     outputs["ID"]["response_json"]
+
+3. Examples of VALID actions:
+   <action type="reasoning" id="analysis" model="google/gemini-2.0-flash-001" format="json">
+   <action type="python" id="process_data" depends_on="analysis">
+   <action type="bash" id="cleanup">
+
+4. Examples of INVALID actions:
+   <action type="python" model="gpt-4"> ❌ (no models on python)
+   <action type="bash" format="json"> ❌ (no formats on bash)
+   <action type="reasoning"> ❌ (missing model)
 4. Strict Data Passing Rules:
    - ALL data MUST flow through declared dependencies
    - Access outputs ONLY through approved methods:
@@ -463,7 +466,7 @@ class AgentCLI(Cmd):
                     if job.status == 'pending':
                         icon = "🖥️" if job.type == 'bash' else "🐍" if job.type == 'python' else "💭"
                         deps = f"Deps: {', '.join(job.depends_on) or 'none'}"
-                        model = f"Model: {job.model}{' [JSON]' if job.response_format == 'json' else ''}" if job.model else ""
+                        model = f"Model: {job.model}{' [JSON]' if job.response_format == 'json' else ''}" if job.type == 'reasoning' else ""
                         content_preview = job.content.split('\n')[0][:80] + ("..." if len(job.content) > 80 else "")
                         print(f"{icon} [{job.id}] {job.type.upper()} {model} | {deps} | {content_preview}")
 
