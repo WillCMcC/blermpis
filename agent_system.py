@@ -228,7 +228,6 @@ try:
     print(f"Found {len(data['trends'])} trends")
   </content>
 </action>"""
-    """
 
                                 # Create messages array with examples
                                 messages = [
