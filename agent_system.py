@@ -326,7 +326,7 @@ class AgentCLI(Cmd):
             
         # Reset agent state for new query
         self.agent = Agent()  # Fresh agent instance
-        self.initial_query = None  # Reset query state
+        self.initial_query = line  # Store original query for potential reroll
         
         # Create fresh reasoning job
         self.agent.add_job(f"""<actions>
@@ -410,10 +410,23 @@ class AgentCLI(Cmd):
                         print(job.content)
                         print("-"*40)
 
-                if input("\n🚀 Execute these actions? (y/n) ").lower() == 'y':
+                user_input = input("\n🚀 Execute these actions? (y/n/R) ").lower()
+                if user_input == 'y':
                     print("\n[Executing Generated Plan]")
                     self.agent.process_queue()
                     self._show_results()
+                elif user_input == 'r':
+                    print("\n🔄 Regenerating plan...")
+                    # Preserve initial query and reprocess
+                    original_query = self.initial_query
+                    self.agent = Agent()
+                    self.agent.add_job(f"""<actions>
+                        <action id="0" type="reasoning">
+                            <content>Generate an XML action plan to: {original_query}</content>
+                        </action>
+                    </actions>""")
+                    self.agent.process_queue()
+                    self._handle_response()  # Recursively handle new plan
                 else:
                     print("Execution canceled")
                     self.agent.job_queue = []
