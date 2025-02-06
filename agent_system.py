@@ -51,7 +51,7 @@ class Agent:
             depends_on = action.get('depends_on', '').split(',') if action.get('depends_on') else []
             
             # Add implicit dependencies from template variables
-            template_deps = re.findall(r'\{\{outputs\.(\w+)\}\}', content)  # Allow alphanumeric IDs
+            template_deps = re.findall(r'\{\{outputs\.([\w\.]+)\}\}', content)  # Allow .response_json.content paths
             depends_on += template_deps
             
             # Remove duplicates and empty strings
@@ -127,7 +127,9 @@ class Agent:
                                 'model_call': lambda query: self._execute_reasoning_subjob(query, job.id),
                                 'get_output': lambda key: self.outputs.get(key),
                                 'json': json,  # Make json available to scripts
-                                'append_output': lambda text: self.output_buffer.append(str(text))
+                                'append_output': lambda text: self.output_buffer.append(str(text)),
+                                'validate_json': lambda data, keys: all(k in data for k in keys),
+                                'get_json_field': lambda job_id, field: self.outputs.get(job_id, {}).get('response_json', {}).get('content', {}).get(field)
                             }
                             exec(job.content, globals(), locs)
                             output = buffer.getvalue()
@@ -140,17 +142,17 @@ class Agent:
                             }
                         except Exception as e:
                             error_msg = str(e)
-                            if "KeyError" in error_msg:
-                                if "'response_json'" in error_msg:
-                                    error_msg += "\n❌ JSON DATA MISSING - Required steps:\n" \
-                                               "1. Verify previous job uses format=\"json\"\n" \
-                                               "2. Check JSON response validity in outputs[\"ID\"][\"json_error\"]\n" \
-                                               "3. Use outputs[\"ID\"][\"response_json\"][\"content\"] to access data"
-                                else:
-                                    error_msg += "\n🔑 DEPENDENCY ISSUE - Check:\n" \
-                                               "1. All dependencies in depends_on\n" \
-                                               "2. Use outputs['ID']['response_json'] for JSON data\n" \
-                                               "3. Previous job used format=\"json\""
+                            # Add specific JSON handling
+                            if "response_json" in error_msg:
+                                error_msg += "\n🔍 JSON ISSUE - Possible fixes:" \
+                                           "\n1. Verify previous job uses format=\"json\"" \
+                                           "\n2. Check outputs[\"ID\"][\"json_error\"] for parsing issues" \
+                                           "\n3. Access fields via outputs[\"ID\"][\"response_json\"][\"content\"]"
+                            
+                            # Add dependency check
+                            missing_deps = [d for d in job.depends_on if d not in self.outputs]
+                            if missing_deps:
+                                error_msg += f"\n🔗 MISSING DEPENDENCIES: {', '.join(missing_deps)}"
                             output = f"Python Error: {error_msg}"
                             self.outputs[job.id] = {
                                 'error': output,
@@ -186,25 +188,37 @@ class Agent:
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
-1. Strict job type separation:
-   - model= only for 'reasoning' type
-   - format="json" ONLY for 'reasoning' type
-   - Python/Bash jobs CANNOT have model or format attributes
 
-2. JSON Validation Requirements:
-   - MUST validate JSON structure before returning
-   - If format="json", response MUST contain 'content' field
-   - Include error checking in Python scripts:
-     try:
-         data = outputs["ID"]["response_json"]["content"]
-     except KeyError:
-         print("Missing data - verify JSON structure")
+STRICT JSON RULES:
+- Use format="json" ONLY when:
+  1. Output will be processed by Python code
+  2. Structured data is required for subsequent steps
+  3. Exact field names are needed
 
-2. JSON handling rules:
-   - ALWAYS use format="json" on reasoning jobs needing structured data
-   - NEVER use json format on python/bash jobs
-   - JSON responses MUST be processed by python scripts using:
-     outputs["ID"]["response_json"]
+- When using format="json":
+  → MUST include <content> containing the EXACT JSON structure required
+  → MUST have a Python job that processes outputs["ID"]["response_json"]["content"]
+  → MUST validate structure in Python with try/except blocks
+
+- JSON ACCESS PATTERNS:
+  Bash: Never access JSON directly - use $OUTPUT_ID for raw text
+  Python: ALWAYS use outputs["JOB_ID"]["response_json"]["content"]
+  Reasoning: Use {{outputs.JOB_ID.response_json.content}} for specific fields
+
+EXAMPLE VALID USAGE:
+<action type="reasoning" id="analysis" model="google/gemini-2.0-flash-001" format="json">
+  <content>Return JSON with { "summary": "text", "score": 0-100 }</content>
+</action>
+
+<action type="python" id="process" depends_on="analysis">
+  <content>
+try:
+    data = outputs["analysis"]["response_json"]["content"] 
+    print(f"Score: {data['score']}/100")
+except KeyError:
+    print("ERROR: Missing expected JSON fields")
+  </content>
+</action>
 
 3. Examples of VALID actions:
    <action type="reasoning" id="analysis" model="google/gemini-2.0-flash-001" format="json">
