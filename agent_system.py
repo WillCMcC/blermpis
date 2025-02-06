@@ -402,11 +402,13 @@ except Exception as e:
                     job.status = f'failed: {str(e)}'
                     # Remove from queue whether successful or failed
                     self.job_queue.remove(job)
+                    # Pre-process content preview
+                    content_preview = job.content[:100].replace('\n', ' ')
                     error_lines = [
                         f"🚨 JOB FAILURE: {job.id} ({job.type.upper()})",
                         f"📝 Error: {str(e)}",
                         f"🔗 Dependencies: {', '.join(job.depends_on) or 'none'}",
-                        f"📄 Content start: {job.content[:100].replace('\n', ' ')}..."
+                        f"📄 Content start: {content_preview}..."
                     ]
                     # Add newline before printing
                     error_lines[0] = "\n" + error_lines[0]
