@@ -166,7 +166,6 @@ class Agent:
    - google/gemini-2.0-flash-001: reasoning, largest context window for long document polishing
    - openai/gpt-4o: best at trivia and general knowledge 
    - openai/o1-mini: fast general reasoning 
-   - meta-llama/llama-3.1-405b-instruct: General writing
 2. Strict XML Formatting:
    - NEVER use markdown code blocks (```xml) 
    - ALWAYS start with <?xml version="1.0"?> as first line
