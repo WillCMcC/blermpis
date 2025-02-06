@@ -213,6 +213,17 @@ DATA FLOW RULES:
   * Python: outputs["ID"]["raw_response"] 
   * Reasoning: {{outputs.ID.raw_response}}
 
+Actions can specify models:
+   - google/gemini-2.0-flash-001: reasoning, largest context window for long document polishing
+   - openai/gpt-4o: best at trivia and general knowledge 
+   - openai/o1-mini: fast general reasoning 
+    - anthropic/claude-3.5-sonnet: creative writing and poetry
+
+When asked to produce a document, use the reasoning model to generate an outline 
+    - following steps can reference these outlines to fill them in piece by piece
+    - Prioritize making multiple calls when asked to generate long form content. Aim for chunks of 1000-2000 words maximum
+    - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled
+
 PLAN EXAMPLES:
 <action type="reasoning" id="analysis" model="google/gemini-2.0-flash-001">
   <content>Generate market analysis report</content>
@@ -354,7 +365,6 @@ except Exception as e:
                         if response.choices[0].finish_reason != 'stop':
                             print(f"\n⚠️ API WARNING: Finish reason '{response.choices[0].finish_reason}'")
                             print(f"   Token Usage: {response.usage}")
-                        print(response)
                         response_content = response.choices[0].message.content
                         
                         # Add response logging before storing
