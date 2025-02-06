@@ -13,6 +13,7 @@ GROQ_API_KEY='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'
 
 OPENROUTER_API_URL='https://openrouter.ai/api/v1'
 GROQ_API_URL='https://api.groq.com/openai/v1'
+DEEPSEEK_API_URL='https://api.deepseek.com'
 
 @dataclass
 class Job:
@@ -66,20 +67,6 @@ class Agent:
                 depends_on=depends_on,
                 model=model  # Add model parameter
             ))
-    
-    def _dump_output(self):
-        """Write accumulated output to timestamped file when all jobs complete"""
-        if not self.output_buffer:
-            return
-            
-        from datetime import datetime
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"output_{timestamp}.txt"
-        
-        with open(filename, 'w') as f:
-            f.write('\n'.join(self.output_buffer))
-            
-        print(f"\n📦 Output bundle saved to {filename}")
 
     def _execute_reasoning_subjob(self, query, parent_id):
         """Handle nested model calls from Python scripts"""
@@ -158,7 +145,7 @@ class Agent:
                             sys.stdout = old_stdout
                     elif job.type == 'reasoning':
                         # Add query logging
-                        print(f"\n[Reasoning Query]\n{job.content}\n{'='*50}")
+                        print(f"\n[Reasoning Query: {job.model}]\n{job.content}\n{'='*50}")
 
                         api_key = OPENROUTER_API_KEY
                         if not api_key:
@@ -173,18 +160,17 @@ class Agent:
                             # Determine system message based on job type
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
-1. First action (id=0) MUST use model="google/gemini-2.0-flash-001"
-2. Subsequent actions can specify models:
+1. Actions can specify models:
    - google/gemini-2.0-flash-001: general reasoning (default)
    - openai/o1-mini: fast general reasoning 
    - meta-llama/llama-3.1-405b-instruct: Creative writing
-3. Strict XML Formatting:
+2. Strict XML Formatting:
    - NEVER use markdown code blocks (```xml) 
    - ALWAYS start with <?xml version="1.0"?> as first line
    - Remove ALL markdown formatting from XML
    - Ensure proper XML escaping for special characters
    - Validate XML structure before responding
-4. XML Structure:
+3. XML Structure:
    - Start with <?xml version="1.0"?>
    - Wrap ALL steps in <actions> tags
    - Required tags:
@@ -260,8 +246,8 @@ except Exception as e:
 
                             # Use job-specific model if specified, else deepseek-r1
                             # Force deepseek-r1 for initial planning job
-                            # model = job.model or 'google/gemini-2.0-flash-001'
-                            model = 'google/gemini-2.0-flash-001'
+                            model = job.model or 'google/gemini-2.0-flash-001'
+                            # model = 'google/gemini-2.0-flash-001'
                             response = client.chat.completions.create(
                                 model=model,
                                 messages=[
@@ -286,16 +272,7 @@ except Exception as e:
                     job.status = f'failed: {str(e)}'
                     # Remove from queue whether successful or failed
                     self.job_queue.remove(job)
-                    # Improve error parsing for API responses
-                    if not self.job_queue:  # If this was the last job, dump output
-                        self._dump_output()
-                    if "401" in str(e):
-                        print("\n🔑 Authentication Failed - Verify:")
-                        print("1. You have a valid DeepSeek API key")
-                        print("2. Your API key is set in environment:")
-                        print("   export DEEPSEEK_API_KEY=your_key_here")
-                    else:
-                        print(f"\n⚠️ Job {job.id} failed: {e}")
+                    print(f"\n⚠️ Job {job.id} failed: {e}")
 
 class AgentCLI(Cmd):
     prompt = 'agent> '
