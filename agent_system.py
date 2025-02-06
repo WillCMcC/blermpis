@@ -140,12 +140,16 @@ class Agent:
                         except Exception as e:
                             error_msg = str(e)
                             if "KeyError" in error_msg:
-                                error_msg += "\n🔑 Missing dependency - Verify:"
-                                error_msg += "\n1. Use outputs['ID']['response_json'] for JSON data"
-                                error_msg += "\n2. Previous job used format=\"json\" attribute"
-                                error_msg += "\n3. All dependencies declared in depends_on"
-                            elif "json_error" in str(e):
-                                error_msg += "\n🗃️ JSON Error - Check if previous reasoning job used format=\"json\""
+                                if "'response_json'" in error_msg:
+                                    error_msg += "\n❌ JSON DATA MISSING - Required steps:\n" \
+                                               "1. Verify previous job uses format=\"json\"\n" \
+                                               "2. Check JSON response validity in outputs[\"ID\"][\"json_error\"]\n" \
+                                               "3. Use outputs[\"ID\"][\"response_json\"][\"content\"] to access data"
+                                else:
+                                    error_msg += "\n🔑 DEPENDENCY ISSUE - Check:\n" \
+                                               "1. All dependencies in depends_on\n" \
+                                               "2. Use outputs['ID']['response_json'] for JSON data\n" \
+                                               "3. Previous job used format=\"json\""
                             output = f"Python Error: {error_msg}"
                             self.outputs[job.id] = {
                                 'error': output,
@@ -185,6 +189,15 @@ class Agent:
    - model= only for 'reasoning' type
    - format="json" ONLY for 'reasoning' type
    - Python/Bash jobs CANNOT have model or format attributes
+
+2. JSON Validation Requirements:
+   - MUST validate JSON structure before returning
+   - If format="json", response MUST contain 'content' field
+   - Include error checking in Python scripts:
+     try:
+         data = outputs["ID"]["response_json"]["content"]
+     except KeyError:
+         print("Missing data - verify JSON structure")
 
 2. JSON handling rules:
    - ALWAYS use format="json" on reasoning jobs needing structured data
@@ -352,13 +365,14 @@ except Exception as e:
                         }
                         
                         if job.response_format == 'json':
+                            output_data['response_json'] = {}  # Always create the key
                             try:
-                                output_data['response_json'] = json.loads(response_content)
-                                # Add validation for expected JSON structure
+                                parsed_json = json.loads(response_content)
+                                output_data['response_json'] = parsed_json
                                 if 'content' not in output_data['response_json']:
-                                    output_data['json_error'] = "Missing required 'content' field in JSON response"
+                                    output_data['json_error'] = "Missing required 'content' field"
                             except json.JSONDecodeError:
-                                output_data['json_error'] = "Invalid JSON response format"
+                                output_data['json_error'] = "Invalid JSON format"
                                 
                         self.outputs[job.id] = output_data
                         self.output_buffer.append(response_content)
