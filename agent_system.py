@@ -166,6 +166,7 @@ class Agent:
    - google/gemini-2.0-flash-001: reasoning, largest context window for long document polishing
    - openai/gpt-4o: best at trivia and general knowledge 
    - openai/o1-mini: fast general reasoning 
+    - anthropic/claude-3.5-sonnet: creative writing and poetry
 2. Strict XML Formatting:
    - NEVER use markdown code blocks (```xml) 
    - ALWAYS start with <?xml version="1.0"?> as first line
@@ -199,15 +200,15 @@ class Agent:
    - Validate JSON parsing in Python
    - Declare ALL dependencies in depends_on
    - Handle missing dependencies explicitly
-   - REJECT any plan that doesn't explicitly declare ALL data dependencies
+   - REJECT any plan that doesn't explicitly declare ALL data dependencies"""
 
-Example valid structure with proper data flow:
-
-Generate an XML action plan to: find the current president
-
-<?xml version="1.0"?>
+                                # Create messages array with examples
+                                messages = [
+                                    {"role": "system", "content": system_msg},
+                                    {"role": "user", "content": "Generate an XML action plan to: find the current president"},
+                                    {"role": "assistant", "content": """<?xml version="1.0"?>
 <actions>
- <action type="bash" id="1" depends_on="2">
+  <action type="bash" id="1" depends_on="2">
     <content>pip install wikipedia</content>
   </action>
   <action type="python" id="2" model="google/gemini-2.0-flash-001">
@@ -217,29 +218,24 @@ try:
     president_page = wikipedia.page("President of the United States")
     print(president_page.content)
 except wikipedia.exceptions.PageError:
-    print("Error: Wikipedia page for 'President of the United States' not found.")
+    print("Error: Wikipedia page not found.")
 except wikipedia.exceptions.DisambiguationError as e:
-    print(f"Error: Disambiguation error: {e.options}")
-</content>
+    print(f"Error: {e.options}")
+    </content>
   </action>
   <action type="reasoning" id="3" model="google/gemini-2.0-flash-001" depends_on="1">
-    <content>Based on the Wikipedia page content at {{outputs.1.raw_response}}, identify the current president of the United States. Extract the name of the current president from the text and output only the name.</content>
+    <content>Based on {{outputs.1.raw_response}}, identify current president.</content>
   </action>
-</actions>
-
-ANOTHER EXAMPLE:
-
-<!-- Planning job with explicit input dependency -->
+</actions>"""},
+                                    {"role": "user", "content": "Create a technical document outline with analysis"},
+                                    {"role": "assistant", "content": """<?xml version="1.0"?>
+<actions>
   <action type="reasoning" id="plan" model="deepseek/deepseek-r1" depends_on="priority">
     <content>Create outline focused on technical aspects...</content>
   </action>
-
-  <!-- Content generation with proper dependency chain -->
   <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet" depends_on="plan">
     <content>Expand {{outputs.plan.raw_response}} into detailed analysis...</content>
   </action>
-
-  <!-- Python processing with proper output handling -->
   <action type="python" id="2" depends_on="1">
     <content>
 import json
@@ -250,16 +246,15 @@ except Exception as e:
     print(f"Error processing output: {str(e)}")
     </content>
   </action>
-
-  <!-- Final output with proper dependency -->
-  <action type="bash" id="3" depends_on="2">
-    <content>echo "Analysis complete: $OUTPUT_2"</content>
-  </action>
-</actions>
-
-"""
+</actions>"""},
+                                    {"role": "user", "content": job_content}
+                                ]
                             else:  # Subsequent reasoning queries
                                 system_msg = """You are a helpful assistant. Provide a detailed response."""
+                                messages = [
+                                    {"role": "system", "content": system_msg},
+                                    {"role": "user", "content": job_content}
+                                ]
 
                             # Handle {{outputs.ID}} and {{outputs.ID.raw_response}} patterns
                             substitutions = {
@@ -278,10 +273,7 @@ except Exception as e:
                             # model = 'google/gemini-2.0-flash-001'
                             response = client.chat.completions.create(
                                 model=model,
-                                messages=[
-                                    {"role": "system", "content": system_msg},
-                                    {"role": "user", "content": job_content}
-                                ],
+                                messages=messages,
                                 max_tokens=4096,
                                 stream=False
                             )
