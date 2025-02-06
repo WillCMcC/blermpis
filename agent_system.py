@@ -216,7 +216,9 @@ class Agent:
     - Instead of ultra specific queries, prefer fetching entire pages and piping to reasoning models
 8. When asked to produce a document, use the reasoning model to generate an outline 
     - following steps can reference these outlines to fill them in piece by piece
-    - use python or Gemeni to put the outputs back together"""
+    - Prioritize making multiple calls when asked to generate long form content. Aim for chunks of 1000-2000 words maximum
+    - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled
+    """
 
                                 # Create messages array with examples
                                 messages = [
@@ -266,7 +268,7 @@ except Exception as e:
                                     {"role": "user", "content": processed_content}
                                 ]
                             else:  # Subsequent reasoning queries
-                                system_msg = """You are a helpful assistant. Provide a detailed response."""
+                                system_msg = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original."""
                                 messages = [
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": processed_content}
