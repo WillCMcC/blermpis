@@ -114,7 +114,11 @@ class Agent:
                         else:
                             clean_output = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', result.stdout)
                         clean_output = f"[Exit {result.returncode}] {clean_output.strip()}"
-                        self.outputs[job.id] = clean_output
+                        self.outputs[job.id] = {
+                            'raw_response': clean_output,
+                            'output': clean_output,
+                            'status': 'completed'
+                        }
                         self.output_buffer.append(clean_output)
                     elif job.type == 'python':
                         # Capture printed output
@@ -159,8 +163,9 @@ class Agent:
                                 error_msg += f"\n🔗 MISSING DEPENDENCIES: {', '.join(missing_deps)}"
                             output = f"Python Error: {error_msg}"
                             self.outputs[job.id] = {
-                                'error': output,
-                                'output': output  # Maintain output key for compatibility
+                                'error': {'error_msg': output},
+                                'output': output,
+                                'status': 'failed'
                             }
                         finally:
                             sys.stdout = old_stdout
