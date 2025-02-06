@@ -207,17 +207,11 @@ class Agent:
      * XML <actions> plan for subsequent steps
      * JSON data for direct answers (wrap in <response>)
    - XML takes precedence if detected
-6. Error Handling:
-   - Validate JSON parsing in Python
-   - Declare ALL dependencies in depends_on
-   - Handle missing dependencies explicitly
-   - REJECT any plan that doesn't explicitly declare ALL data dependencies
-7. When you need information, use wikipedia via python and send the output to a model
-    - Instead of ultra specific queries, prefer fetching entire pages and piping to reasoning models
-8. When asked to produce a document, use the reasoning model to generate an outline 
+6. When asked to produce a document, use the reasoning model to generate an outline 
     - following steps can reference these outlines to fill them in piece by piece
     - Prioritize making multiple calls when asked to generate long form content. Aim for chunks of 1000-2000 words maximum
     - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled
+7. When passing data between steps, use JSON and specify EXACTLY the structure the prompt should output. Do not use markdown codeblocks, always prefer raw data.
     """
 
                                 # Create messages array with examples
@@ -303,7 +297,7 @@ except Exception as e:
                                     {"role": "user", "content": processed_content}
                                 ]
                             else:  # Subsequent reasoning queries
-                                system_msg = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original."""
+                                system_msg = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original. NEVER produce incomplete content -- prioritizing ending neatly before tokens run out. Never return markdown codeblocks -- always prefer raw data. Markdown codeblock strings will break our pipeline."""
                                 messages = [
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": processed_content}
