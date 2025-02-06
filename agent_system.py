@@ -163,7 +163,7 @@ class Agent:
                             if job.id == "0":  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these requirements:
 1. Actions can specify models:
-   - google/gemini-2.0-flash-001: general reasoning (default)
+   - google/gemini-2.0-flash-001: general reasoning, largest context -- best for stitching together many other outputs
    - openai/o1-mini: fast general reasoning 
    - meta-llama/llama-3.1-405b-instruct: Creative writing
 2. Strict XML Formatting:
@@ -202,10 +202,34 @@ class Agent:
    - REJECT any plan that doesn't explicitly declare ALL data dependencies
 
 Example valid structure with proper data flow:
+
+Generate an XML action plan to: find the current president
+
 <?xml version="1.0"?>
 <actions>
-  
-  <!-- Planning job with explicit input dependency -->
+ <action type="bash" id="1" depends_on="2">
+    <content>pip install wikipedia</content>
+  </action>
+  <action type="python" id="2" model="google/gemini-2.0-flash-001">
+    <content>
+import wikipedia
+try:
+    president_page = wikipedia.page("President of the United States")
+    print(president_page.content)
+except wikipedia.exceptions.PageError:
+    print("Error: Wikipedia page for 'President of the United States' not found.")
+except wikipedia.exceptions.DisambiguationError as e:
+    print(f"Error: Disambiguation error: {e.options}")
+</content>
+  </action>
+  <action type="reasoning" id="3" model="google/gemini-2.0-flash-001" depends_on="1">
+    <content>Based on the Wikipedia page content at {{outputs.1.raw_response}}, identify the current president of the United States. Extract the name of the current president from the text and output only the name.</content>
+  </action>
+</actions>
+
+ANOTHER EXAMPLE:
+
+<!-- Planning job with explicit input dependency -->
   <action type="reasoning" id="plan" model="deepseek/deepseek-r1" depends_on="priority">
     <content>Create outline focused on technical aspects...</content>
   </action>
@@ -231,7 +255,9 @@ except Exception as e:
   <action type="bash" id="3" depends_on="2">
     <content>echo "Analysis complete: $OUTPUT_2"</content>
   </action>
-</actions>"""
+</actions>
+
+"""
                             else:  # Subsequent reasoning queries
                                 system_msg = """You are a helpful assistant. Provide a detailed response."""
 
@@ -251,7 +277,7 @@ except Exception as e:
                             model = job.model or 'google/gemini-2.0-flash-001'
                             # model = 'google/gemini-2.0-flash-001'
                             response = client.chat.completions.create(
-                                model=model,
+                                model='google/gemini-2.0-flash-001',
                                 messages=[
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": job_content}
