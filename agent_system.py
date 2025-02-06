@@ -346,7 +346,8 @@ except Exception as e:
 - Include ALL data fields"""
                                 messages[0]["content"] = system_msg
 
-                            response = client.chat.completions.create(**api_params)
+                        response = client.chat.completions.create(**api_params)
+                        print(response)
                         response_content = response.choices[0].message.content
                         
                         # Add response logging before storing
