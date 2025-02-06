@@ -211,7 +211,12 @@ class Agent:
    - Validate JSON parsing in Python
    - Declare ALL dependencies in depends_on
    - Handle missing dependencies explicitly
-   - REJECT any plan that doesn't explicitly declare ALL data dependencies"""
+   - REJECT any plan that doesn't explicitly declare ALL data dependencies
+7. When you need information, use wikipedia via python and send the output to a model
+    - Instead of ultra specific queries, prefer fetching entire pages and piping to reasoning models
+8. When asked to produce a document, use the reasoning model to generate an outline 
+    - following steps can reference these outlines to fill them in piece by piece
+    - use python or Gemeni to put the outputs back together"""
 
                                 # Create messages array with examples
                                 messages = [
