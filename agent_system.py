@@ -24,6 +24,7 @@ class Job:
     status: str = 'pending'
     output_ref: str = None  # Variable name to store output in
     model: str = None  # Add model parameter
+    response_format: str = None  # Add response format field
 
 class Agent:
     def __init__(self):
@@ -60,12 +61,15 @@ class Agent:
             if job_type == 'reasoning' and not model:
                 model = 'google/gemini-2.0-flash-001'  # Default for reasoning
 
+            # Add format parameter extraction
+            response_format = action.get('format')
             self.job_queue.append(Job(
                 id=job_id,
                 type=job_type,
                 content=content,
                 depends_on=depends_on,
-                model=model  # Add model parameter
+                model=model,  # Add model parameter
+                response_format=response_format  # Store response format
             ))
 
     def _execute_reasoning_subjob(self, query, parent_id):
@@ -205,9 +209,13 @@ class Agent:
 5. Response Formats:
    - Reasoning jobs return either:
      * XML <actions> plan for subsequent steps
-     * JSON data for direct answers (wrap in <response>)
+     * JSON data (when action has format="json")
    - XML takes precedence if detected
-6. When asked to produce a document, use the reasoning model to generate an outline 
+6. JSON Format Actions:
+   - Add format="json" to action tag
+   - Specify required JSON structure in content
+   - Response must match structure exactly
+7. When asked to produce a document, use the reasoning model to generate an outline 
     - following steps can reference these outlines to fill them in piece by piece
     - Prioritize making multiple calls when asked to generate long form content. Aim for chunks of 1000-2000 words maximum
     - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled
@@ -307,21 +315,49 @@ except Exception as e:
                             # Force deepseek-r1 for initial planning job
                             model = job.model or 'google/gemini-2.0-flash-001'
                             # model = 'google/gemini-2.0-flash-001'
-                            response = client.chat.completions.create(
-                                model=model,
-                                messages=messages,
-                                max_tokens=4096,
-                                stream=False
-                            )
+                            # Prepare API parameters
+                            api_params = {
+                                "model": model,
+                                "messages": messages,
+                                "max_tokens": 4096,
+                                "stream": False
+                            }
+
+                            if job.response_format == 'json':
+                                api_params["response_format"] = {"type": "json_object"}
+                                # Update system message for JSON responses
+                                system_msg = """You MUST return valid JSON matching EXACTLY this structure:
+{
+    "content": "full response", 
+    "metadata": {
+        "sources": ["source1", ...],
+        "analysis": "technical notes",
+        "next_steps": ["suggested actions"]
+    }
+}
+- Escape special characters
+- No markdown code blocks
+- Include ALL data fields"""
+                                messages[0]["content"] = system_msg
+
+                            response = client.chat.completions.create(**api_params)
                         response_content = response.choices[0].message.content
                         
                         # Add response logging before storing
                         print(f"[Raw Reasoning Response]\n{response_content}\n{'='*50}")
                         # Store response with type information
-                        self.outputs[job.id] = {
+                        output_data = {
                             'raw_response': response_content,
                             'response_type': 'actions' if '<actions>' in response_content else 'content'
                         }
+                        
+                        if job.response_format == 'json':
+                            try:
+                                output_data['response_json'] = json.loads(response_content)
+                            except json.JSONDecodeError:
+                                output_data['json_error'] = "Invalid JSON response"
+                                
+                        self.outputs[job.id] = output_data
                         self.output_buffer.append(response_content)
                     job.status = 'completed'
                 except Exception as e:
