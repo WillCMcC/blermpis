@@ -245,7 +245,7 @@ except Exception as e:
   </action>
 </actions>"""
                             else:  # Subsequent reasoning queries
-                                system_msg = """You are a helpful assistant. Provide a concise response wrapped in <response> tags."""
+                                system_msg = """You are a helpful assistant. Provide a detailed response."""
 
                             # Handle {{outputs.ID}} and {{outputs.ID.raw_response}} patterns
                             substitutions = {
@@ -260,8 +260,8 @@ except Exception as e:
 
                             # Use job-specific model if specified, else deepseek-r1
                             # Force deepseek-r1 for initial planning job
-                            model = job.model or 'google/gemini-2.0-flash-001'
-                            # model = 'google/gemini-2.0-flash-001'
+                            # model = job.model or 'google/gemini-2.0-flash-001'
+                            model = 'google/gemini-2.0-flash-001'
                             response = client.chat.completions.create(
                                 model=model,
                                 messages=[
