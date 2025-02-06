@@ -4,6 +4,7 @@ import subprocess
 import os
 import re
 import warnings
+import json
 from cmd import Cmd
 from openai import OpenAI
 
@@ -365,14 +366,14 @@ except Exception as e:
                         }
                         
                         if job.response_format == 'json':
-                            output_data['response_json'] = {}  # Always create the key
+                            output_data['response_json'] = {}  # Initialize even if parsing fails
                             try:
                                 parsed_json = json.loads(response_content)
                                 output_data['response_json'] = parsed_json
-                                if 'content' not in output_data['response_json']:
+                                if 'content' not in parsed_json:
                                     output_data['json_error'] = "Missing required 'content' field"
-                            except json.JSONDecodeError:
-                                output_data['json_error'] = "Invalid JSON format"
+                            except json.JSONDecodeError as e:
+                                output_data['json_error'] = f"Invalid JSON: {str(e)}"
                                 
                         self.outputs[job.id] = output_data
                         self.output_buffer.append(response_content)
