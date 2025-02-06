@@ -206,20 +206,16 @@ class Agent:
      * Implicit execution order
      * Undeclared dependencies
      * Direct variable access
-5. Response Formats:
-   - Reasoning jobs return either:
-     * XML <actions> plan for subsequent steps
-     * JSON data (when action has format="json")
-   - XML takes precedence if detected
-6. JSON Format Actions:
+5. JSON Format Actions:
    - Add format="json" to action tag
    - Specify required JSON structure in content
    - Response must match structure exactly
-7. When asked to produce a document, use the reasoning model to generate an outline 
+   - ALWAYS use this to pipe reasoning outputs into python steps
+   - NEVER ask a normal reasoning job for JSON data
+6. When asked to produce a document, use the reasoning model to generate an outline 
     - following steps can reference these outlines to fill them in piece by piece
     - Prioritize making multiple calls when asked to generate long form content. Aim for chunks of 1000-2000 words maximum
     - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled
-7. When passing data between steps, use JSON and specify EXACTLY the structure the prompt should output. Do not use markdown codeblocks, always prefer raw data.
     """
 
                                 # Create messages array with examples
@@ -250,7 +246,7 @@ except wikipedia.exceptions.DisambiguationError as e:
                                     {"role": "user", "content": "Create a technical document outline with analysis"},
                                     {"role": "assistant", "content": """<?xml version="1.0"?>
 <actions>
-  <action type="reasoning" id="plan" model="deepseek/deepseek-r1" depends_on="priority">
+  <action type="reasoning" id="plan" model="deepseek/deepseek-r1" depends_on="priority" format="json">
     <content>Create outline focused on technical aspects...</content>
   </action>
   <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet" depends_on="plan">
@@ -305,7 +301,7 @@ except Exception as e:
                                     {"role": "user", "content": processed_content}
                                 ]
                             else:  # Subsequent reasoning queries
-                                system_msg = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original. NEVER produce incomplete content -- prioritizing ending neatly before tokens run out. Never return markdown codeblocks -- always prefer raw data. Markdown codeblock strings will break our pipeline."""
+                                system_msg = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original. NEVER produce incomplete content -- prioritizing ending neatly before tokens run out."""
                                 messages = [
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": processed_content}
