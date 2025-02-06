@@ -52,7 +52,7 @@ class Agent:
             depends_on = action.get('depends_on', '').split(',') if action.get('depends_on') else []
             
             # Add implicit dependencies from template variables
-            template_deps = re.findall(r'\{\{outputs\.([\w\.]+)\}\}', content)  # Allow .response_json.content paths
+            template_deps = re.findall(r'\{\{outputs\.([\w]+)[^\}]*\}\}', content)  # Capture only job ID before first dot
             depends_on += template_deps
             
             # Remove duplicates and empty strings
@@ -348,6 +348,9 @@ except Exception as e:
                                 messages[0]["content"] = system_msg
 
                         response = client.chat.completions.create(**api_params)
+                        response_content = response.choices[0].message.content
+                        if not response_content:
+                            raise ValueError("Empty response from API - check model permissions/availability")
                         if response.choices[0].finish_reason != 'stop':
                             print(f"\n⚠️ API WARNING: Finish reason '{response.choices[0].finish_reason}'")
                             print(f"   Token Usage: {response.usage}")
@@ -607,7 +610,7 @@ class AgentCLI(Cmd):
             model = f"Model: {job.model}{' [JSON]' if job.response_format == 'json' else ''}" if job.model else ""
             
             # Get output preview
-            output = result.get('output') or result.get('raw_response') or str(result)
+            output = result.get('error', {}).get('error_msg') or result.get('output') or result.get('raw_response') or str(result)
             output_preview = (output[:80] + "...") if len(output) > 80 else output
             
             print(f"{status_icon} {icon} [{job.id}] {job.type.upper()} {model}")
