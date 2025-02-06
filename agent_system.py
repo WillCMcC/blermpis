@@ -265,6 +265,41 @@ except Exception as e:
     </content>
   </action>
 </actions>"""},
+                                    {"role": "user", "content": "go to google news and summarize it for me"},
+                                    {"role": "assistant", "content": """<?xml version="1.0"?>
+<actions>
+  <action type="python" id="1" model="google/gemini-2.0-flash-001">
+    <content>
+import requests
+from bs4 import BeautifulSoup
+
+try:
+    url = "https://news.google.com/news/rss"
+    response = requests.get(url)
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.content, "xml")
+    items = soup.find_all("item")
+
+    news_items = []
+    for item in items:
+        title = item.find("title").text
+        link = item.find("link").text
+        description = item.find("description").text
+        news_items.append({"title": title, "link": link, "description": description})
+
+    print(news_items)
+
+except requests.exceptions.RequestException as e:
+    print(f"Request Error: {e}")
+except Exception as e:
+    print(f"An error occurred: {e}")
+</content>
+  </action>
+  <action type="reasoning" id="2" model="google/gemini-2.0-flash-001" depends_on="1">
+    <content>Summarize the following news articles: {{outputs.1.raw_response}}</content>
+  </action>
+</actions>"""},
                                     {"role": "user", "content": processed_content}
                                 ]
                             else:  # Subsequent reasoning queries
