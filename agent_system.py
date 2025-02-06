@@ -107,9 +107,12 @@ class Agent:
                             text=True,
                             env=env_vars
                         )
-                        # Clean ANSI escape codes
-                        clean_output = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', result.stdout)
-                        clean_output = clean_output.strip()
+                        # Clean ANSI escape codes and handle errors
+                        if result.returncode != 0:
+                            clean_output = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', result.stderr)
+                        else:
+                            clean_output = re.sub(r'\x1B\[[0-?]*[ -/]*[@-~]', '', result.stdout)
+                        clean_output = f"[Exit {result.returncode}] {clean_output.strip()}"
                         self.outputs[job.id] = clean_output
                         self.output_buffer.append(clean_output)
                     elif job.type == 'python':
@@ -162,7 +165,7 @@ class Agent:
                             sys.stdout = old_stdout
                     elif job.type == 'reasoning':
                         # Add query logging
-                        print(f"\n[Reasoning Query: {job.model}]\n{job.content}\n{'='*50}")
+                        print(f"[🤖] Running reasoning job '{job.id}' with model {job.model}")
 
                         api_key = OPENROUTER_API_KEY
                         if not api_key:
@@ -386,6 +389,9 @@ except Exception as e:
                                 output_data['response_json'] = parsed_json
                                 if 'content' not in parsed_json:
                                     output_data['json_error'] = "Missing required 'content' field"
+                                    print(f"\n❌ JSON VALIDATION FAILED [{job.id}]")
+                                    print(f"   ├─ Expected format: {system_msg.split('EXACTLY', 1)[-1][:120]}...")
+                                    print(f"   └─ Error: {output_data['json_error']}")
                             except json.JSONDecodeError as e:
                                 output_data['json_error'] = f"Invalid JSON: {str(e)}"
                                 
@@ -396,7 +402,15 @@ except Exception as e:
                     job.status = f'failed: {str(e)}'
                     # Remove from queue whether successful or failed
                     self.job_queue.remove(job)
-                    print(f"\n⚠️ Job {job.id} failed: {e}")
+                    error_lines = [
+                        f"\n🚨 JOB FAILURE: {job.id} ({job.type.upper()})",
+                        f"📝 Error: {str(e)}",
+                        f"🔗 Dependencies: {', '.join(job.depends_on) or 'none'}",
+                        f"📄 Content start: {job.content[:100].replace('\n', ' ')}..."
+                    ]
+                    if job.type == 'reasoning' and job.response_format == 'json':
+                        error_lines.append("🔍 JSON TIP: Check if response matches required schema")
+                    print('\n'.join(error_lines))
 
 class AgentCLI(Cmd):
     prompt = 'agent> '
