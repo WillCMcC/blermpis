@@ -463,7 +463,7 @@ class AgentCLI(Cmd):
                     if job.status == 'pending':
                         icon = "🖥️" if job.type == 'bash' else "🐍" if job.type == 'python' else "💭"
                         deps = f"Deps: {', '.join(job.depends_on) or 'none'}"
-                        model = f"Model: {job.model}" if job.model else ""
+                        model = f"Model: {job.model}{' [JSON]' if job.response_format == 'json' else ''}" if job.model else ""
                         content_preview = job.content.split('\n')[0][:80] + ("..." if len(job.content) > 80 else "")
                         print(f"{icon} [{job.id}] {job.type.upper()} {model} | {deps} | {content_preview}")
 
@@ -515,7 +515,7 @@ class AgentCLI(Cmd):
             result = self.agent.outputs.get(job.id, {})
             status_icon = "✅" if job.status == 'completed' else "❌"
             icon = "🖥️" if job.type == 'bash' else "🐍" if job.type == 'python' else "💭"
-            model = f"Model: {job.model}" if job.model else ""
+            model = f"Model: {job.model}{' [JSON]' if job.response_format == 'json' else ''}" if job.model else ""
             
             # Get output preview
             output = result.get('output') or result.get('raw_response') or str(result)
