@@ -696,7 +696,13 @@ class AgentCLI(Cmd):
                     self.agent = Agent()
                     self.agent.add_job(f"""<actions>
                         <action id="0" type="reasoning">
-                            <content>Generate an XML action plan to: {self.initial_query}{feedback_clause}</content>
+                            <content>Generate an XML action plan to: {self.initial_query}{feedback_clause}
+                            
+                            Previous Plan:
+                            {self.last_generated_plan_xml}
+
+                            Don't change anything unless the user has specifically requested it.
+                            </content>
                         </action>
                     </actions>""")
                     self.agent.process_queue()
