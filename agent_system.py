@@ -343,22 +343,17 @@ except Exception as e:
                             api_params = {
                                 "model": model,
                                 "messages": messages,
-                                "max_tokens": 4096,
                                 "stream": False
                             }
 
                             if job.response_format == 'json':
                                 api_params["response_format"] = {"type": "json_object"}
                                 # Update system message for JSON responses
-                                system_msg = """You MUST return valid JSON matching EXACTLY this structure:
-{
-    "content": "full response", 
-    "metadata": {
-        "sources": ["source1", ...],
-        "analysis": "technical notes",
-        "next_steps": ["suggested actions"]
-    }
-}
+                                system_msg = """You MUST return valid JSON:
+- Be CONCISE - trim all unnecessary fields/variables                                                                                                                                                                                               
+- Summarize lengthy content instead of verbatim inclusion                                                                                                                                                                                          
+- Use short property names where possible                                                                                                                                                                                                          
+- If content exceeds 200 characters, provide a summary    
 - Escape special characters
 - No markdown code blocks
 - Include ALL data fields"""
