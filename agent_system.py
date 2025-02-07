@@ -128,7 +128,6 @@ class Agent:
                         sys.stdout = buffer = StringIO()
                         
                         try:
-                            import json  # Ensure json is available
                             locs = {
                                 'outputs': {dep: self.outputs.get(dep) for dep in job.depends_on},
                                 'agent': self,  # Add agent reference
@@ -210,6 +209,8 @@ JSON USAGE GUIDELINES (use only when needed):
   * Output requires specific field names
   * Data will be processed programmatically
   * Exact structure validation is critical
+  * if a script depends on a reasoning job, that reasoning job MUST be of type JSON
+  * ensure JSON content includes only necessary properties
 
 DATA FLOW RULES:
 - All data MUST flow through declared dependencies
@@ -222,7 +223,7 @@ Actions can specify models:
    - google/gemini-2.0-flash-001: reasoning, largest context window for long document polishing
    - openai/gpt-4o: best at trivia and general knowledge 
    - openai/o1-mini: fast general reasoning 
-    - anthropic/claude-3.5-sonnet: creative writing and poetry
+   - anthropic/claude-3.5-sonnet: creative writing and poetry
 
 When asked to produce a document, use the reasoning model to generate an outline 
     - following steps can reference these outlines to fill them in piece by piece
@@ -385,11 +386,6 @@ except Exception as e:
                             try:
                                 parsed_json = json.loads(response_content)
                                 output_data['response_json'] = parsed_json
-                                if 'content' not in parsed_json:
-                                    output_data['json_error'] = "Missing required 'content' field"
-                                    print(f"\n❌ JSON VALIDATION FAILED [{job.id}]")
-                                    print(f"   ├─ Expected format: {system_msg.split('EXACTLY', 1)[-1][:120]}...")
-                                    print(f"   └─ Error: {output_data['json_error']}")
                             except json.JSONDecodeError as e:
                                 output_data['json_error'] = f"Invalid JSON: {str(e)}"
                                 
