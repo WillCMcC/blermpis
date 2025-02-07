@@ -53,8 +53,10 @@ class Agent:
         for action in root.findall('action'):
             job_id = action.get('id')
             job_type = action.get('type')
-            content_element = action.find('content') or action
-            content = content_element.text.strip() if content_element is not None and content_element.text else None
+            content_element = action.find('content')
+            content = content_element.text if content_element is not None else action.text
+            if content:
+                content = re.sub(r'\s+', ' ', content).strip()
 
             if not content:
                 logger.error(f"Action {job_id} missing content")
@@ -116,7 +118,9 @@ class Agent:
                 'get_output': lambda key: self.outputs.get(key),
                 'json': json,
                 'append_output': lambda text: self.output_buffer.append(str(text)),
-                'validate_json': lambda data, keys: all(k in data for k in keys),
+                'validate_json': lambda data: json.dumps(data),  # Simple validation check
+                'parse_json': lambda text: json.loads(text),  # Safer parsing
+                'validate_json_keys': lambda data, keys: all(k in data for k in keys),
                 'get_json_field': lambda job_id, field: self.outputs.get(job_id, {}).get('response_json', {}).get('content', {}).get(field)
             }
             exec(job.content, globals(), locs)
@@ -374,8 +378,8 @@ except Exception as e:
         for job in list(self.job_queue):
             if job.status != 'pending':
                 continue
-            if not all(self.outputs.get(dep) not in (None, 'No response') for dep in job.depends_on):
-                continue
+            if not all(self.outputs.get(dep, {}).get('status') == 'completed' for dep in job.depends_on):
+                continue  # Skip jobs with unresolved dependencies
             try:
                 if job.type == 'bash':
                     self._execute_bash_job(job)
@@ -476,14 +480,15 @@ class AgentCLI(Cmd):
         """Processes a user query by creating and executing an initial planning job."""
         self.agent = Agent()
         self.initial_query = query
-        self.agent.add_job(f"""<actions><action id="0" type="reasoning"><content>Generate an XML action plan to: {query} Requirements: - Ensure any Python code is properly formatted with dependencies installed - Pass data between jobs appropriately - If a Python job depends on reasoning output, that reasoning job must use format="json" - Break long-form content into manageable chunks</content></action></actions>""")
+        initial_id = f"plan_{int(time.time())}"
+        self.agent.add_job(f"""<actions><action id="{initial_id}" type="reasoning"><content>Generate an XML action plan to: {query} Requirements: - Ensure any Python code is properly formatted with dependencies installed - Pass data between jobs appropriately - If a Python job depends on reasoning output, that reasoning job must use format="json" - Break long-form content into manageable chunks</content></action></actions>""")
         self.agent.process_queue()
         self._handle_response()
     
     def _handle_response(self):
         """Processes and displays the agent's response to a query."""
-        if not DEEPSEEK_API_KEY:
-            print("\n❌ Missing DEEPSEEK_API_KEY environment variable.\nGet an API key from https://platform.deepseek.com and run: export DEEPSEEK_API_KEY=your_key_here")
+        if not OPENROUTER_API_KEY:
+            print("\n❌ Missing OPENROUTER_API_KEY environment variable.\nGet an API key from https://openrouter.ai and run: export OPENROUTER_API_KEY=your_key_here")
             return
                     
         initial_job = next((job for job in self.agent.job_queue if job.id == "0"), None)
