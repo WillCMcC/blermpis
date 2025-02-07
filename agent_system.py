@@ -230,7 +230,7 @@ When asked to produce a document, use the reasoning model to generate an outline
     - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled
 
 PLAN EXAMPLES:
-<action type="reasoning" id="analysis" model="google/gemini-2.0-flash-001">
+<action type="reasoning" id="analysis" model="openai/o1-mini-2024-09-12">
   <content>Generate market analysis report</content>
 </action>
 
@@ -255,7 +255,7 @@ try:
   <action type="bash" id="1" depends_on="2">
     <content>pip install wikipedia</content>
   </action>
-  <action type="python" id="2" model="google/gemini-2.0-flash-001">
+  <action type="python" id="2">
     <content>
 import wikipedia
 try:
