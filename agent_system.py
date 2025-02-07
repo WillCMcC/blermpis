@@ -492,22 +492,17 @@ class AgentCLI(Cmd):
         self.agent = Agent()  # Fresh agent instance
         self.initial_query = line  # Store original query for potential reroll
         
-        # Create fresh reasoning job
-        self.agent.add_job(f"""<actions>
-            <action id="initial-thought" type="reasoning">
-                <content>Generate an XML action plan to: {line}</content>
-            </action>
-        </actions>""")
+        # Create initial planning job
         self.agent.add_job(f"""<actions>
             <action id="0" type="reasoning">
                 <content>
                     Generate an XML action plan to: {line}
-                    first attempt: 
-                    {{outputs.initial-thought.raw_response}}
-
-                    ensure that any python code is properly formatted and that all dependencies are installed
-                    ensure data is passed between jobs in the appropriate way
-                    ensure that if a python job depends on the output of a reasoning job, that reasoning job is of type JSON
+                    
+                    Requirements:
+                    - Ensure any Python code is properly formatted with dependencies installed
+                    - Pass data between jobs appropriately
+                    - If a Python job depends on reasoning output, that reasoning job must use format="json"
+                    - Break long-form content into manageable chunks
                 </content>
             </action>
         </actions>""")
@@ -647,7 +642,7 @@ class AgentCLI(Cmd):
     def _show_results(self):
         print("\n" + "="*50 + "\n📊 Execution Results\n" + "="*50)
         for job in self.agent.job_queue:
-            if job.id == "0" or job.id == 'initial-thought':
+            if job.id == "0":  # Skip planning job
                 continue
                 
             result = self.agent.outputs.get(job.id, {})
