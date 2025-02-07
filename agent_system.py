@@ -1,4 +1,7 @@
 import time
+import os
+import shutil
+from pathlib import Path
 from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 import subprocess
@@ -474,15 +477,29 @@ class AgentCLI(Cmd):
         """Override to handle natural language inputs properly"""
         if not line:
             return False
-        if line.split()[0].lower() not in ['exit']:
+        if line.lower().startswith("job:") or line.split()[0].lower() not in ['exit']:
             return self.default(line)
         return super().onecmd(line)
     
     def default(self, line):
-        """Handle natural language queries"""
+        """Handle natural language queries and job execution"""
         if line.strip().lower() == 'exit':
             return self.do_exit('')
             
+        if line.lower().startswith("job:"):
+            job_name = line.split(":", 1)[1].strip()
+            try:
+                xml_content = self._load_job(job_name)
+                print(f"📂 Executing saved job: {job_name}")
+                self.agent = Agent()
+                self.agent.add_job(xml_content)
+                self.last_generated_plan_xml = xml_content
+                self.agent.process_queue()
+                self._show_results()
+            except Exception as e:
+                print(f"❌ Error loading job: {str(e)}")
+            return
+
         # Reset agent state for new query
         self.agent = Agent()  # Fresh agent instance
         self.initial_query = line  # Store original query for potential reroll
@@ -659,6 +676,7 @@ class AgentCLI(Cmd):
             print("  p - Rerun last plan")
             print("  f - Add feedback & regenerate")
             print("  x - Show generated XML plan")
+            print("  s - Save current job plan")
             print("  exit - Return to prompt")
             choice = input("agent(post)> ").lower()
             
@@ -710,6 +728,10 @@ class AgentCLI(Cmd):
                     print("="*50)
                 else:
                     print("No XML plan stored")
+            elif choice == 's':
+                job_name = input("Enter name to save job as: ").strip()
+                if job_name:
+                    self._save_job(job_name)
             elif choice == 'exit':
                 break
             else:
@@ -720,6 +742,26 @@ class AgentCLI(Cmd):
         self.agent.outputs = {}
         self.initial_query = None
     
+    def _save_job(self, job_name: str):
+        """Save the current XML plan to jobs directory"""
+        jobs_dir = Path("jobs")
+        jobs_dir.mkdir(exist_ok=True)
+        
+        if not self.last_generated_plan_xml:
+            print("No plan to save")
+            return
+            
+        dest = jobs_dir / f"{job_name}.xml"
+        dest.write_text(self.last_generated_plan_xml, encoding='utf-8')
+        print(f"✅ Saved job to {dest}")
+
+    def _load_job(self, job_name: str) -> str:
+        """Load XML from jobs directory"""
+        job_path = Path("jobs") / f"{job_name}.xml"
+        if not job_path.exists():
+            raise FileNotFoundError(f"Job {job_name} not found")
+        return job_path.read_text(encoding='utf-8')
+
     def do_exit(self, arg):
         """Exit the CLI"""
         return True
