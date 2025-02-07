@@ -56,41 +56,20 @@ except wikipedia.exceptions.DisambiguationError as e:
     <content>Based on {{outputs.1.raw_response}}, identify current president.</content>
   </action>
 </actions>"""},
-    {"role": "user", "content": "Create a technical document outline with analysis"},
+    {"role": "user", "content": "Find out what is happening today and make me a report"},
     {"role": "assistant", "content": """<?xml version="1.0"?>
 <actions>
-  <action type="reasoning" id="plan" model="deepseek/deepseek-r1" depends_on="priority" format="json">
-    <content>Create outline focused on technical aspects...</content>
-  </action>
-  <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet" depends_on="plan">
-    <content>Expand {{outputs.plan.raw_response}} into detailed analysis...</content>
-  </action>
-  <action type="python" id="2" depends_on="plan">
-    <content>
-try:
-    data = outputs["plan"]["response_json"]
-    print(f"Processed result: {data['content']}")
-except Exception as e:
-    print(f"Error processing output: {str(e)}")
-    </content>
-  </action>
-</actions>"""},
-    {"role": "user", "content": "go to google news and summarize it for me"},
-    {"role": "assistant", "content": """<?xml version="1.0"?>
-<actions>
-  <action type="python" id="1" model="google/gemini-2.0-flash-001">
-    <content>
+    <action type="python" id="fetch_google_news">
+        <content>
 import requests
 from bs4 import BeautifulSoup
 
 try:
-    url = "https://news.google.com/news/rss"
-    response = requests.get(url)
+    response = requests.get("https://news.google.com/news/rss")
     response.raise_for_status()
 
     soup = BeautifulSoup(response.content, "xml")
     items = soup.find_all("item")
-
     news_items = []
     for item in items:
         title = item.find("title").text
@@ -99,16 +78,80 @@ try:
         news_items.append({"title": title, "link": link, "description": description})
 
     print(news_items)
+except requests.exceptions.RequestException as e:
+    print(f"Error fetching Google News: {e}")
+    print("[]")
+except Exception as e:
+    print(f"Error parsing Google News: {e}")
+    print("[]")
+</content>
+    </action>
+
+    <action type="python" id="fetch_wikipedia">
+        <content>
+import requests
+from bs4 import BeautifulSoup
+
+try:
+    response = requests.get("https://en.wikipedia.org/wiki/Main_Page")
+    response.raise_for_status()
+    soup = BeautifulSoup(response.content, "html.parser")
+    
+    # Extract relevant sections like "From today's featured article", "Did you know...", "In the news"
+    featured_article = soup.find(id="mp-tfa")
+    did_you_know = soup.find(id="mp-dyk")
+    in_the_news = soup.find(id="mp-itn")
+
+    wikipedia_content = {}
+
+    if featured_article:
+        wikipedia_content["featured_article"] = featured_article.text
+    if did_you_know:
+        wikipedia_content["did_you_know"] = did_you_know.text
+    if in_the_news:
+        wikipedia_content["in_the_news"] = in_the_news.text
+
+    print(wikipedia_content)
 
 except requests.exceptions.RequestException as e:
-    print(f"Request Error: {e}")
+    print(f"Error fetching Wikipedia: {e}")
+    print("{}")
 except Exception as e:
-    print(f"An error occurred: {e}")
+    print(f"Error parsing Wikipedia: {e}")
+    print("{}")
 </content>
-  </action>
-  <action type="reasoning" id="2" model="google/gemini-2.0-flash-001" depends_on="1">
-    <content>Summarize the following news articles: {{outputs.1.raw_response}}</content>
-  </action>
+    </action>
+
+    <action type="reasoning" id="compile_summary" model="google/gemini-2.0-flash-001" depends_on="fetch_google_news,fetch_wikipedia">
+        <content>
+Compile a summary of the news of the day based on the following information:
+
+Google News: {{outputs.fetch_google_news.raw_response}}
+
+Wikipedia Main Page: {{outputs.fetch_wikipedia.raw_response}}
+
+Make sure to include links. Aim for a 5 minute read. Only return the document please.
+
+</content>
+    </action>
+
+    <action type="python" id="save_summary" depends_on="compile_summary">
+        <content>
+import datetime
+
+try:
+    summary = outputs["compile_summary"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"news_summary_{timestamp}.md"
+
+    with open(filename, "w") as f:
+        f.write(f"# News Summary - {timestamp}\\n\\n{summary}")
+
+    print(f"Summary saved to {filename}")
+except Exception as e:
+    print(f"Error saving summary: {e}")
+</content>
+    </action>
 </actions>"""}
 ]
 
