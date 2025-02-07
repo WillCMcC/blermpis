@@ -194,7 +194,7 @@ class Agent:
                             )
 
                             # Determine system message based on job type
-                            if job.id == "0":  # Initial planning job
+                            if job.id == "0" or job.id == 'initial-thought':  # Initial planning job
                                 system_msg = """You are an AI planner. Generate XML action plans with these guidelines:
 
 CORE PRINCIPLES:
@@ -494,8 +494,21 @@ class AgentCLI(Cmd):
         
         # Create fresh reasoning job
         self.agent.add_job(f"""<actions>
-            <action id="0" type="reasoning">
+            <action id="initial-thought" type="reasoning">
                 <content>Generate an XML action plan to: {line}</content>
+            </action>
+        </actions>""")
+        self.agent.add_job(f"""<actions>
+            <action id="0" type="reasoning">
+                <content>
+                    Generate an XML action plan to: {line}
+                    first attempt: 
+                    {{outputs.initial-thought.raw_response}}
+
+                    ensure that any python code is properly formatted and that all dependencies are installed
+                    ensure data is passed between jobs in the appropriate way
+                    ensure that if a python job depends on the output of a reasoning job, that reasoning job is of type JSON
+                </content>
             </action>
         </actions>""")
         self.agent.process_queue()
@@ -634,7 +647,7 @@ class AgentCLI(Cmd):
     def _show_results(self):
         print("\n" + "="*50 + "\n📊 Execution Results\n" + "="*50)
         for job in self.agent.job_queue:
-            if job.id == "0":
+            if job.id == "0" or job.id == 'initial-thought':
                 continue
                 
             result = self.agent.outputs.get(job.id, {})
@@ -717,3 +730,4 @@ class AgentCLI(Cmd):
 
 if __name__ == '__main__':
     AgentCLI().cmdloop()
+    
