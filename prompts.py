@@ -111,3 +111,14 @@ except Exception as e:
   </action>
 </actions>"""}
 ]
+
+JSON_SYSTEM_PROMPT = """You MUST return valid JSON:
+- Be CONCISE - trim all unnecessary fields/variables                                                                                                                                                                                               
+- Summarize lengthy content instead of verbatim inclusion                                                                                                                                                                                          
+- Use short property names where possible                                                                                                                                                                                                          
+- If content exceeds 200 characters, provide a summary    
+- Escape special characters
+- No markdown code blocks
+- Include ALL data fields"""
+
+CONTENT_SYSTEM_PROMPT = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original. NEVER produce incomplete content -- prioritizing ending neatly before tokens run out."""

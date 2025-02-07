@@ -11,7 +11,7 @@ import warnings
 import json
 from cmd import Cmd
 from openai import OpenAI
-from prompts import INITIAL_SYSTEM_PROMPT, PLANNING_EXAMPLES
+from prompts import INITIAL_SYSTEM_PROMPT, PLANNING_EXAMPLES, JSON_SYSTEM_PROMPT, CONTENT_SYSTEM_PROMPT
 
 DEEPSEEK_API_KEY='sk-c4e470b3ca36497d87cabd72c79b4fcf'
 OPENROUTER_API_KEY='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'
@@ -207,7 +207,7 @@ class Agent:
                                     {"role": "user", "content": processed_content}
                                 ]
                             else:  # Subsequent reasoning queries
-                                system_msg = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original. NEVER produce incomplete content -- prioritizing ending neatly before tokens run out."""
+                                system_msg = CONTENT_SYSTEM_PROMPT
                                 messages = [
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": processed_content}
@@ -227,14 +227,7 @@ class Agent:
                             if job.response_format == 'json':
                                 api_params["response_format"] = {"type": "json_object"}
                                 # Update system message for JSON responses
-                                system_msg = """You MUST return valid JSON:
-- Be CONCISE - trim all unnecessary fields/variables                                                                                                                                                                                               
-- Summarize lengthy content instead of verbatim inclusion                                                                                                                                                                                          
-- Use short property names where possible                                                                                                                                                                                                          
-- If content exceeds 200 characters, provide a summary    
-- Escape special characters
-- No markdown code blocks
-- Include ALL data fields"""
+                                system_msg = JSON_SYSTEM_PROMPT
                                 messages[0]["content"] = system_msg
 
                         response = client.chat.completions.create(**api_params)
