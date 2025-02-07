@@ -476,6 +476,7 @@ class AgentCLI(Cmd):
         super().__init__()
         self.agent = Agent()
         self.initial_query = None
+        self.feedback_history = []  # Track feedback across regenerations
     
     def onecmd(self, line):
         """Override to handle natural language inputs properly"""
@@ -567,26 +568,43 @@ class AgentCLI(Cmd):
                 # Get user confirmation
                 print("\n" + "="*50 + "\n📋 Generated Plan\n" + "="*50)
                 for job in self.agent.job_queue:
-                    if job.status == 'pending':
+                    if job.status == 'pending' and job.id != "0":
                         icon = "🖥️" if job.type == 'bash' else "🐍" if job.type == 'python' else "💭"
                         deps = f"Deps: {', '.join(job.depends_on) or 'none'}"
                         model = f"Model: {job.model}{' [JSON]' if job.response_format == 'json' else ''}" if job.type == 'reasoning' else ""
-                        content_preview = job.content.split('\n')[0][:80] + ("..." if len(job.content) > 80 else "")
-                        print(f"{icon} [{job.id}] {job.type.upper()} {model} | {deps} | {content_preview}")
+                        
+                        print(f"{icon} [{job.id}] {job.type.upper()} {model}")
+                        print(f"   └─ Dependencies: {deps}")
+                        print("      Content:")
+                        for line in job.content.split('\n'):
+                            print(f"      │ {line}")
+                        print("─"*50)
 
-                user_input = input("\n🚀 Execute these actions? (y/n/R) ").lower()
+                user_input = input("\n🚀 Options: (y) Execute, (n) Cancel, (R) Regenerate, (!) Add feedback: ").lower()
+                feedback = None
+                if user_input.startswith('!'):
+                    feedback = user_input[1:].strip()
+                    print(f"📝 Feedback noted: {feedback}")
+                    user_input = 'r'  # Treat feedback as regeneration request
+                
                 if user_input == 'y':
                     print("\n[Executing Generated Plan]")
                     self.agent.process_queue()
                     self._show_results()
                 elif user_input == 'r':
-                    print("\n🔄 Regenerating plan...")
-                    # Preserve initial query and reprocess
+                    print("\n🔄 Regenerating plan with feedback...")
                     original_query = self.initial_query
+                    if feedback:
+                        self.feedback_history.append(feedback)
+                    
+                    feedback_clause = ""
+                    if self.feedback_history:
+                        feedback_clause = "\n\nFeedback from previous plans:\n- " + "\n- ".join(self.feedback_history)
+
                     self.agent = Agent()
                     self.agent.add_job(f"""<actions>
                         <action id="0" type="reasoning">
-                            <content>Generate an XML action plan to: {original_query}</content>
+                            <content>Generate an XML action plan to: {original_query}{feedback_clause}</content>
                         </action>
                     </actions>""")
                     self.agent.process_queue()
