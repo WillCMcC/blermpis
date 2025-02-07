@@ -11,6 +11,7 @@ import warnings
 import json
 from cmd import Cmd
 from openai import OpenAI
+from prompts import INITIAL_SYSTEM_PROMPT, PLANNING_EXAMPLES
 
 DEEPSEEK_API_KEY='sk-c4e470b3ca36497d87cabd72c79b4fcf'
 OPENROUTER_API_KEY='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'
