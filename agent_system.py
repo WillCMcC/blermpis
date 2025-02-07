@@ -199,61 +199,15 @@ class Agent:
 
                             # Determine system message based on job type
                             if job.id == "0" or job.id == 'initial-thought':  # Initial planning job
-                                system_msg = """You are an AI planner. Generate XML action plans with these guidelines:
-
-CORE PRINCIPLES:
-1. Prefer simple, linear workflows unless complexity is required
-2. Use appropriate formats for data interchange:
-   - JSON when Python code needs structured data
-   - Raw text for human-readable outputs
-3. Ensure clear dependency declarations
-
-JSON USAGE GUIDELINES (use only when needed):
-- Consider format="json" when:
-  * Output requires specific field names
-  * Data will be processed programmatically
-  * Exact structure validation is critical
-  * if a script depends on a reasoning job, that reasoning job MUST be of type JSON
-  * ensure JSON content includes only necessary properties
-
-DATA FLOW RULES:
-- All data MUST flow through declared dependencies
-- Access outputs through:
-  * Bash: $OUTPUT_ID
-  * Python: outputs["ID"]["raw_response"] 
-  * Reasoning: {{outputs.ID.raw_response}}
-
-Actions can specify models:
-   - google/gemini-2.0-flash-001: reasoning, largest context window for long document polishing
-   - openai/gpt-4o: best at trivia and general knowledge 
-   - openai/o1-mini: fast general reasoning 
-   - anthropic/claude-3.5-sonnet: creative writing and poetry
-
-When asked to produce a document, use the reasoning model to generate an outline 
-    - following steps can reference these outlines to fill them in piece by piece
-    - Prioritize making multiple calls when asked to generate long form content. Aim for chunks of 1000-2000 words maximum
-    - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled
-
-PLAN EXAMPLES:
-<action type="reasoning" id="analysis" model="openai/o1-mini-2024-09-12">
-  <content>Generate market analysis report</content>
-</action>
-
-<action type="reasoning" id="structured_analysis" model="anthropic/claude-3-haiku" format="json">
-  <content>Return JSON with { "trends": [], "summary": "" }</content>
-</action>
-
-<action type="python" id="process" depends_on="structured_analysis">
-  <content>
-try:
-    data = outputs["structured_analysis"]["response_json"]["content"]
-    print(f"Found {len(data['trends'])} trends")
-  </content>
-</action>"""
+                                system_msg = INITIAL_SYSTEM_PROMPT
 
                                 # Create messages array with examples
-                                messages = [
-                                    {"role": "system", "content": system_msg},
+                                messages = [{"role": "system", "content": system_msg}]
+                                for example in PLANNING_EXAMPLES:
+                                    messages.extend([
+                                        {"role": "user", "content": example["user"]},
+                                        {"role": "assistant", "content": example["assistant"]}
+                                    ])
                                     {"role": "user", "content": "Generate an XML action plan to: find the current president"},
                                     {"role": "assistant", "content": """<?xml version="1.0"?>
 <actions>
