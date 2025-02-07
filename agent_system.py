@@ -477,6 +477,7 @@ class AgentCLI(Cmd):
         self.agent = Agent()
         self.initial_query = None
         self.feedback_history = []  # Track feedback across regenerations
+        self.last_generated_plan_xml = None  # Store original XML for recall
     
     def onecmd(self, line):
         """Override to handle natural language inputs properly"""
@@ -548,6 +549,9 @@ class AgentCLI(Cmd):
                     print("2. Ensure proper tag nesting")
                     print("3. Escape special characters like & with &amp;")
                     return
+
+                # Store the original XML plan
+                self.last_generated_plan_xml = response_content
 
                 # Handle input requests first
                 inputs = {}
@@ -649,6 +653,63 @@ class AgentCLI(Cmd):
             print(f"{status_icon} {icon} [{job.id}] {job.type.upper()} {model}")
             print(f"   └─ {output_preview}")
             
+        # Add post-execution options
+        while True:
+            print("\nPost-execution options:")
+            print("  q - Rerun original query")
+            print("  p - Rerun last plan")
+            print("  f - Add feedback & regenerate")
+            print("  x - Show generated XML plan")
+            print("  exit - Return to prompt")
+            choice = input("agent(post)> ").lower()
+            
+            if choice == 'q':
+                self.agent = Agent()
+                self.agent.add_job(f"""<actions>
+                    <action id="0" type="reasoning">
+                        <content>Generate an XML action plan to: {self.initial_query}</content>
+                    </action>
+                </actions>""")
+                self.agent.process_queue()
+                self._handle_response()
+                break
+            elif choice == 'p':
+                if self.last_generated_plan_xml:
+                    print("\n🔄 Re-running last plan...")
+                    self.agent = Agent()
+                    self.agent.add_job(self.last_generated_plan_xml)
+                    self.agent.process_queue()
+                    self._show_results()
+                else:
+                    print("No plan stored to rerun")
+                break
+            elif choice == 'f':
+                feedback = input("Enter feedback: ").strip()
+                if feedback:
+                    self.feedback_history.append(feedback)
+                    print("\n🔄 Regenerating with feedback...")
+                    feedback_clause = "\n\nFeedback history:\n- " + "\n- ".join(self.feedback_history)
+                    self.agent = Agent()
+                    self.agent.add_job(f"""<actions>
+                        <action id="0" type="reasoning">
+                            <content>Generate an XML action plan to: {self.initial_query}{feedback_clause}</content>
+                        </action>
+                    </actions>""")
+                    self.agent.process_queue()
+                    self._handle_response()
+                    break
+            elif choice == 'x':
+                if self.last_generated_plan_xml:
+                    print("\n📦 Stored XML Plan:\n" + "="*50)
+                    print(self.last_generated_plan_xml)
+                    print("="*50)
+                else:
+                    print("No XML plan stored")
+            elif choice == 'exit':
+                break
+            else:
+                print("Invalid option")
+
         # Clear state after processing
         self.agent.job_queue = []
         self.agent.outputs = {}
