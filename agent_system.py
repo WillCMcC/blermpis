@@ -340,6 +340,15 @@ class AgentCLI(Cmd):
         self.initial_query = None
         self.feedback_history = []  # Track feedback across regenerations
         self.last_generated_plan_xml = None  # Store original XML for recall
+        
+        # Show welcome message
+        print("\n🤖 Welcome to AgentCLI!")
+        print("\nQuick Start:")
+        print("1. Type your request in natural language")
+        print("2. Type 'j' to list and run saved jobs")
+        print("3. Type 'exit' to quit")
+        print("\nExample: create a python script that prints hello world")
+        print("="*50)
     
     def onecmd(self, line):
         """Override to handle natural language inputs properly"""
