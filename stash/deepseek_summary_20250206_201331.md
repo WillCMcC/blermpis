@@ -1,0 +1,1 @@
+Okay, please provide me with the papers (or the information necessary to find them: title, authors, etc.). I need that information to create the markdown summary you requested. I will then include the title, authors, abstract, and a PDF link (if provided or readily available through a search).

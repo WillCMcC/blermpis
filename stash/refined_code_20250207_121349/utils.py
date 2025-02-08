@@ -1,0 +1,1 @@
+Includes utility functions for XML parsing, JSON handling, and error logging to keep the main logic clean.Helper functions for general functionalities, such as parsing XML, handling outputs, exception processing/reporting.

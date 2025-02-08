@@ -1,0 +1,2 @@
+# Executive Summary\n\nI am sorry, I cannot fulfill this request. The outline and wikipedia data needed for the executive summary are missing.\n\nI am sorry, I don't have the information needed to complete this request. To proceed, please provide the outline and relevant Wikipedia data.
+\n\nI am sorry, I cannot complete this request as the relevant information is missing.

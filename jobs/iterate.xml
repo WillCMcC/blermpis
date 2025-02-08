@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<actions>
+    <action type="python" id="read_source_code">
+        <content>
+import os
+
+filename = "agent_system.py"  # hardcoded filename
+
+try:
+    with open(filename, "r") as f:
+        source_code = f.read()
+    print(source_code)
+except FileNotFoundError:
+    print(f"Error: File '{filename}' not found.")
+    print("") #empty string for handling downstream
+except Exception as e:
+    print(f"Error reading file: {e}")
+    print("")
+</content>
+    </action>
+
+    <action type="reasoning" id="gpt4o_critique" model="openai/gpt-4o" format="json" depends_on="read_source_code">
+        <content>
+I am an AI agent. My source code is:
+
+{{outputs.read_source_code.raw_response}}
+
+As an expert software engineer, critique my code and suggest improvements, focusing on:
+- Code clarity and readability
+- Simplicity
+- Efficiency and performance
+- Potential bugs
+- Adherence to best practices
+- Ignore the keys being hardcoded, this is just a tool for me. 
+
+Suggest actionable improvements in a structured JSON format, including the location in the code, and what the suggested change is.
+
+```json
+{
+   "critiques": [
+       {"location": "line number", "problem": "description", "fix": "suggestion"},
+       {"location": "line number", "problem": "description", "fix": "suggestion"}
+   ]
+}
+```
+
+</content>
+    </action>
+
+    <action type="reasoning" id="gemini_critique" model="google/gemini-2.0-flash-001" format="json" depends_on="read_source_code">
+        <content>
+I am an AI agent. My source code is:
+
+{{outputs.read_source_code.raw_response}}
+
+As an expert software engineer, critique my code and suggest improvements, focusing on:
+- Code clarity and readability
+- Efficiency and performance
+- Potential bugs and vulnerabilities
+- Adherence to best practices
+Suggest actionable improvements in a structured JSON format, including the location in the code, and what the suggested change is.
+
+```json
+{
+   "critiques": [
+       {"location": "line number", "problem": "description", "fix": "suggestion"},
+       {"location": "line number", "problem": "description", "fix": "suggestion"}
+   ]
+}
+```
+
+</content>
+    </action>
+
+    <action type="reasoning" id="claude_critique" model="anthropic/claude-3.5-sonnet" format="json" depends_on="read_source_code">
+        <content>
+I am an AI agent. My source code is:
+
+{{outputs.read_source_code.raw_response}}
+
+As an expert software engineer, critique my code and suggest improvements, focusing on:
+- Code clarity and readability
+- Efficiency and performance
+- Potential bugs and vulnerabilities
+- Adherence to best practices
+Suggest actionable improvements in a structured JSON format, including the location in the code, and what the suggested change is.
+
+```json
+{
+   "critiques": [
+       {"location": "line number", "problem": "description", "fix": "suggestion"},
+       {"location": "line number", "problem": "description", "fix": "suggestion"}
+   ]
+}
+```
+
+</content>
+    </action>
+
+    <action type="reasoning" id="o1mini_critique" model="openai/o1-mini" format="json" depends_on="read_source_code">
+        <content>
+I am an AI agent. My source code is:
+
+{{outputs.read_source_code.raw_response}}
+
+As an expert software engineer, critique my code and suggest improvements, focusing on:
+- Code clarity and readability
+- Efficiency and performance
+- Potential bugs and vulnerabilities
+- Adherence to best practices
+Suggest actionable improvements in a structured JSON format, including the location in the code, and what the suggested change is.
+
+```json
+{
+   "critiques": [
+       {"location": "line number", "problem": "description", "fix": "suggestion"},
+       {"location": "line number", "problem": "description", "fix": "suggestion"}
+   ]
+}
+```
+
+</content>
+    </action>
+
+    <action type="reasoning" id="aggregate_critiques" model="google/gemini-2.0-flash-001" depends_on="gpt4o_critique,gemini_critique,claude_critique,o1mini_critique" format="json">
+        <content>
+Aggregate the critiques from the following models, prioritizing suggestions that appear in multiple critiques:
+
+GPT-4o Critique: {{outputs.gpt4o_critique.raw_response}}
+Gemini Critique: {{outputs.gemini_critique.raw_response}}
+Claude Critique: {{outputs.claude_critique.raw_response}}
+O1-mini Critique: {{outputs.o1mini_critique.raw_response}}
+
+Produce a consolidated list of improvements, noting the model(s) that suggested each improvement. Format this as a series of actionable changes.
+
+```json
+{
+  "improvements": [
+      {"location": "line number", "problem": "description", "fix": "suggestion", "models": ["gpt4o", "gemini"]},
+      {"location": "line number", "problem": "description", "fix": "suggestion", "models": ["claude"]}
+  ]
+
+}
+```
+</content>
+    </action>
+
+    <action type="reasoning" id="implement_changes" model="google/gemini-2.0-flash-001" depends_on="read_source_code,aggregate_critiques">
+        <content>
+Here is my current source code:
+{{outputs.read_source_code.raw_response}}
+
+Here are the suggested improvements, in JSON format:
+{{outputs.aggregate_critiques.raw_response}}
+
+Apply these improvements to create an improved version of the code. Please write out the complete updated code, incorporating all the suggested changes.
+</content>
+    </action>
+
+    <action type="python" id="save_improved_code" depends_on="implement_changes">
+        <content>
+import datetime
+
+timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+improved_code = outputs["implement_changes"]["raw_response"]
+filename = "" f"improved_agent_system-{timestamp}.py"
+
+try:
+    with open(filename, "w") as f:
+        f.write(improved_code)
+    print(f"Improved code saved to {filename}")
+except Exception as e:
+    print(f"Error saving improved code: {e}")
+</content>
+    </action>
+</actions>

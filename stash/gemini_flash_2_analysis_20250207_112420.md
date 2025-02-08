@@ -1,0 +1,12 @@
+# Gemini Flash 2 Integration Analysis
+
+## Date: 2025-02-07T11:24:20.479223
+
+### Best Practices:
+[{'use_case': 'Reasoning Jobs', 'model_selection': "The agent uses Gemini Flash 2 (google/gemini-2.0-flash-001) as a default model for reasoning jobs, especially in the initial planning stage. It's also used in other reasoning jobs and when a large context window is required.", 'prompting': "System messages guide the model's behavior, especially for XML action plan generation. The system message is different for the initial plan. Examples in the system message guide.", 'data_handling': 'Dependencies are managed using the `depends_on` attribute in XML actions, and outputs from dependent jobs are injected into subsequent job contents.'}]
+
+### Limitations:
+[{'area': 'Token Usage', 'description': 'The current implementation does not explicitly manage or track token usage for Gemini Flash 2. There are token checks to prevent runaway usage.', 'mitigation': 'The system attempts to break long-form content into roughly 1000-2000 word chunks.'}, {'area': 'Error Handling', 'description': 'While errors are caught, the error messages, especially for the reasoning jobs, could be improved with more specific guidance for Gemini Flash 2 related issues (e.g., prompt length limits, specific formatting requirements).', 'improvement': 'Implement token counting, and improve formatting instructions.'}]
+
+### Potential Improvements:
+[{'area': 'Dynamic Model Selection', 'description': 'Instead of hardcoding Gemini Flash 2 as the default, allow dynamic model selection based on the specific requirements of the reasoning job.  Consider using a function to evaluate requirements such as response speed, token support, and level of reasoning.', 'implementation': 'Add enhanced logic that chooses different models on a more granular basis'}, {'area': 'Prompt Optimization', 'description': 'Refine prompts used with Gemini Flash 2 to better leverage its strengths and mitigate any weaknesses. Implement a feedback loop where prompt effectiveness is measured and prompts are automatically refined over time.', 'implementation': 'Systematically test and measure output quality with different prompt styles'}, {'area': 'JSON output improvements', 'description': 'If a reasoning job depends on another reasoning job, it MUST be of type JSON. This is a current requirement within the code.', 'implementation': 'Add additional code to determine whether format="json" is present and, if not, throw an error'}]

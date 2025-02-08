@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<actions>
+  <action type="bash" id="install_diff_lib">
+    <content>pip install diff_match_patch</content>
+  </action>
+
+  <action type="python" id="read_agent_system">
+    <content>
+try:
+    with open("agent_system.py", "r") as f:
+        content = f.read()
+    print(content)
+except FileNotFoundError:
+    print("Error: agent_system.py not found.")
+except Exception as e:
+    print(f"Error reading agent_system.py: {e}")    
+</content>
+  </action>
+
+  <action type="python" id="read_improved_agent_system">
+    <content>
+try:
+    with open("improved_agent_system.py", "r") as f:
+        content = f.read()
+    print(content)
+except FileNotFoundError:
+    print("Error: improved_agent_system.py not found.")
+except Exception as e:
+    print(f"Error reading improved_agent_system.py: {e}")    
+</content>
+  </action>
+
+  <action type="python" id="generate_diff" depends_on="read_agent_system,read_improved_agent_system,install_diff_lib">
+    <content>
+from diff_match_patch import diff_match_patch
+
+try:
+    file1_content = outputs["read_agent_system"]["raw_response"]
+    file2_content = outputs["read_improved_agent_system"]["raw_response"]
+
+    dmp = diff_match_patch()
+    diff = dmp.diff_main(file1_content, file2_content)
+    dmp.diff_cleanupSemantic(diff)
+    
+    print(diff)
+
+except Exception as e:
+    print(f"Error generating diff: {e}")
+</content>
+  </action>
+
+  <action type="reasoning" id="analyze_diff" model="google/gemini-2.0-flash-001" depends_on="generate_diff">
+    <content>Analyze the following diff and summarize the key differences:
+
+{{outputs.generate_diff.raw_response}}
+</content>
+  </action>
+
+  <action type="python" id="report_generation" depends_on="analyze_diff">
+    <content>
+try:
+    diff_analysis = outputs["analyze_diff"]["raw_response"]
+
+    # Basic Markdown report generation.
+    report = f"""
+# Code Comparison Report
+
+## Summary of Changes
+
+{diff_analysis}
+"""
+    print(report)
+
+except Exception as e:
+    print(f"Error in report generation: {e}")
+</content>
+  </action>
+
+  <action type="python" id="save_report" depends_on="report_generation">
+    <content>
+import datetime
+
+try:
+    report_content = outputs["report_generation"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"code_comparison_report_{timestamp}.md"
+
+    with open(filename, "w") as f:
+        f.write(report_content)
+    print(f"Report saved to {filename}")
+
+except Exception as e:
+    print(f"Error saving report: {e}")
+</content>
+  </action>
+</actions>

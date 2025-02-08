@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<actions>
+  <action type="bash" id="1">
+    <content>
+      mkdir -p stash
+    </content>
+  </action>
+  <action type="python" id="2" depends_on="1">
+    <content>
+import os
+import shutil
+
+def move_files(directory):
+  """Moves .txt and .md files from a directory to a 'stash' subdirectory.
+
+  Args:
+    directory: The path to the directory to clean up.
+  """
+
+  stash_dir = os.path.join(directory, "stash")
+  if not os.path.exists(stash_dir):
+    os.makedirs(stash_dir)
+
+  for filename in os.listdir(directory):
+    if filename.endswith((".txt", ".md")):
+      filepath = os.path.join(directory, filename)
+      try:
+        shutil.move(filepath, stash_dir)
+        print(f"Moved {filename} to {stash_dir}")
+      except Exception as e:
+        print(f"Error moving {filename}: {e}")
+
+if __name__ == "__main__":
+  current_directory = os.getcwd()  # Get the current working directory
+  move_files(current_directory)
+    </content>
+  </action>
+</actions>

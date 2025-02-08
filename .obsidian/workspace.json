@@ -1,0 +1,201 @@
+{
+  "main": {
+    "id": "5c6a17146db2802f",
+    "type": "split",
+    "children": [
+      {
+        "id": "e306c5d69ec45f2b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "90a8a030dc9570c2",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "def643df0030c676",
+    "type": "split",
+    "children": [
+      {
+        "id": "db6e60e49c743012",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4230ee3f753731ce",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "byCreatedTime",
+                "autoReveal": true
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "76df7a53629ae9eb",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "145b1e603cde3819",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 295.5
+  },
+  "right": {
+    "id": "2c7a26a0dbce64ae",
+    "type": "split",
+    "children": [
+      {
+        "id": "60182d853220948d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0b1a185c1e5af267",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "study_guide_20250207_094737.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for study_guide_20250207_094737"
+            }
+          },
+          {
+            "id": "c8e3075dd26c4b8b",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "study_guide_20250207_094737.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from study_guide_20250207_094737"
+            }
+          },
+          {
+            "id": "6d8a0fcb6ac29b7b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "8552b6a12d1e4686",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "study_guide_20250207_094737.md"
+              },
+              "icon": "lucide-list",
+              "title": "Outline of study_guide_20250207_094737"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "90a8a030dc9570c2",
+  "lastOpenFiles": [
+    "jobs/shop-car.xml",
+    "jobs/shop-boat.xml",
+    "jobs/shop-cpu.xml",
+    "jobs/quick_news.xml",
+    "jobs/news.xml",
+    "stash/news.xml",
+    "stash/news2.xml",
+    "stash/iterate_claude.xml",
+    "iterate_claude.xml",
+    "stash/cl2.xml",
+    "stash/agent_system_2 copy.py",
+    "craigslist_pc_deals_2025-02-07_20-50-15.md",
+    "stash/craigslist_pc_deals_2025-02-07_20-50-15.md",
+    "stash/craigslist_car_deals_2025-02-07_19-21-29.md",
+    "stash/craigslist_selectors.md",
+    "stash/craigslist_pc_deals_2025-02-07_17-09-22.md",
+    "stash/news_summary_2025-02-07_16-43-31.md",
+    "stash/craigslist_pc_deals_2025-02-07_17-25-14.md",
+    "stash/craigslist_boat_deals_2025-02-07_19-17-16.md",
+    "stash/system_info_2025-02-07_16-30-17.md",
+    "stash/craigslist_pc_deals_2025-02-07_17-08-56.md",
+    "stash/craigslist_pc_deals_2025-02-07_17-26-21.md",
+    "stash/craigslist_pc_deals_2025-02-07_20-46-57.md",
+    "stash/news_summary_2025-02-07_16-38-15.md",
+    "stash/craigslist_pc_deals_2025-02-07_16-49-03.md",
+    "stash/craigslist_pc_deals_2025-02-07_17-06-05.md",
+    "stash/craigslist_pc_deals_2025-02-07_17-28-07.md",
+    "stash/craigslist_pc_deals_2025-02-07_16-47-20.md",
+    "stash/craigslist_pc_deals_2025-02-07_19-31-57.md",
+    "stash/craigslist_pc_deals_2025-02-07_16-45-42.md",
+    "stash/craigslist_pc_deals_2025-02-07_16-59-39.md",
+    "stash/craigslist_pc_deals_2025-02-07_17-27-08.md",
+    "stash/craigslist_pc_deals_2025-02-07_17-07-19.md",
+    "stash/craigslist_pc_deals_2025-02-07_16-53-00.md",
+    "stash/craigslist_pc_deals_2025-02-07_20-43-35.md",
+    "stash/craigslist_pc_deals_2025-02-07_16-58-59.md"
+  ]
+}

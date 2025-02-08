@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<actions>
+  <action type="python" id="1">
+    <content>
+import requests
+from bs4 import BeautifulSoup
+import json
+
+try:
+    url = "https://news.google.com/news/rss"
+    response = requests.get(url)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.content, "xml")
+    items = soup.find_all("item")
+    news_items = []
+    for item in items:
+        title = item.find("title").text
+        link = item.find("link").text
+        description = item.find("description").text
+        news_items.append({"title": title, "link": link, "description": description})
+    print(json.dumps(news_items))
+except requests.exceptions.RequestException as e:
+    print(json.dumps({"error": f"Request Error: {e}"}))
+except Exception as e:
+    print(json.dumps({"error": f"An error occurred: {e}"}))
+    </content>
+    <metadata>
+        <model>google/gemini-2.0-flash-001</model>
+    </metadata>
+  </action>
+  <action type="reasoning" id="2" model="google/gemini-2.0-flash-001" format="json" depends_on="1">
+    <content>
+      Analyze the following news articles to identify relevant entities (people, organizations, places).
+      Return a JSON object with keys "summaries" (a list of summaries of each article) and "entities" (a list of entities).
+      Each entity should have "name" and "type" (person, organization, place) fields.
+      Raw News Data: {{outputs.1.raw_response}}
+    </content>
+  </action>
+  <action type="python" id="3" >
+    <content>
+import wikipedia
+import json
+import re
+
+def clean_title(title):
+    # Remove common patterns and special characters from the title
+    title = re.sub(r'\s*-\s*[^|]+$', '', title)  # Remove "- Source" endings
+    title = re.sub(r'\([^)]*\)', '', title)      # Remove parentheses and their contents
+    title = re.sub(r'\[[^\]]*\]', '', title)      # Remove brackets and their contents
+    title = re.sub(r'[^\w\s]', '', title)          # Remove punctuation
+    title = title.strip()                         # Remove leading/trailing whitespace
+    return title
+
+
+def get_wiki_summary(entity_name):
+    try:
+        clean_name = clean_title(entity_name)
+        page = wikipedia.page(clean_name,  auto_suggest=False, redirect=True)
+        return {"title": page.title, "summary": page.summary, "url": page.url}
+    except wikipedia.exceptions.PageError:
+        return None
+    except wikipedia.exceptions.DisambiguationError as e:
+        # Attempt to resolve disambiguation by picking the first option
+        if e.options:
+            try:
+                first_option = e.options[0]
+                page = wikipedia.page(first_option, auto_suggest=False, redirect=True)
+                return {"title": page.title, "summary": page.summary, "url": page.url}
+            except:
+                return None  # If even the first option fails, return None
+        else:
+            return None  # No options to choose from
+    except Exception as e:
+        return None
+
+news_analysis = json.loads(outputs["2"]["raw_response"])
+entities = news_analysis["entities"]
+entity_wiki_info = {}
+
+for entity in entities:
+    wiki_info = get_wiki_summary(entity["name"])
+    if wiki_info:
+        entity_wiki_info[entity["name"]] = wiki_info
+
+print(json.dumps(entity_wiki_info))
+    </content>
+    <metadata>
+        <model>google/gemini-2.0-flash-001</model>
+    </metadata>
+    <depends_on>2</depends_on>
+  </action>
+  <action type="reasoning" id="4" model="google/gemini-2.0-flash-001" depends_on="2,3">
+    <content>
+      Synthesize the provided news summaries and Wikipedia information to create a comprehensive summary of today's news with links to relevant Wikipedia articles.
+      News Summaries: {{outputs.2.raw_response}}
+      Wikipedia Data: {{outputs.3.raw_response}}
+    </content>
+  </action>
+  <action type="python" id="5" depends_on="4">
+    <content>
+import datetime
+
+summary = outputs["4"]["raw_response"]
+timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+filename = f"news_summary_{timestamp}.md"
+
+try:
+    with open(filename, "w") as f:
+        f.write(summary)
+    print(f"Summary saved to {filename}")
+except Exception as e:
+    print(f"Error saving to file: {e}")
+    </content>
+  </action>
+</actions>

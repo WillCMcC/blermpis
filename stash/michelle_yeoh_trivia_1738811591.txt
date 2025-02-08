@@ -1,0 +1,34 @@
+
+Michelle Yeoh Trivia Study Guide
+
+Yes Madam (1985):
+  Plot Summary:
+    {outputs.1.raw_response}
+  Character Portrayal:
+    {outputs.2.raw_response}
+  Memorable Quotes:
+    {outputs.3.raw_response}
+
+The Stunt Woman (1996):
+  Plot Summary:
+    {outputs.4.raw_response}
+  Character Portrayal:
+    {outputs.5.raw_response}
+  Memorable Quotes:
+    {outputs.6.raw_response}
+
+Police Story 3: Supercop (1992):
+  Plot Summary:
+    {outputs.7.raw_response}
+  Character Portrayal:
+    {outputs.8.raw_response}
+  Memorable Quotes:
+    {outputs.9.raw_response}
+
+The Heroic Trio (1993):
+  Plot Summary:
+    {outputs.10.raw_response}
+  Character Portrayal:
+    {outputs.11.raw_response}
+  Memorable Quotes & Gadgets:
+    {outputs.12.raw_response}

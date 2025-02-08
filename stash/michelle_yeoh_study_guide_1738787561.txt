@@ -1,0 +1,103 @@
+Yes Madam (1985): ```xml
+<response>
+```xml
+<?xml version="1.0"?>
+<outline>
+  <movie title="Police Story 3: Supercop (1992)">
+    <section title="Action Sequences and Choreography">
+      <subsection title="Detailed Scene Breakdown: Drug Lord Compound Raid">
+        <instruction>Describe the entire sequence of the raid, from initial infiltration to the final confrontation. Include details of the environment (indoor/outdoor, obstacles), specific actions performed by Michelle Yeoh (jumps, falls, dodges), and the opponents she faces. Mention any unique camera angles or editing techniques used to enhance the action.</instruction>
+      </subsection>
+      <subsection title="Specific Fighting Styles">
+        <instruction>Analyze martial arts and fighting styles used by Michelle Yeoh in specific scenes. Are there recognizable styles like Wing Chun, Kung Fu, or others? Describe how she adapts to different opponents and environments.</instruction>
+      </subsection>
+      <subsection title="Stunt Work: Identifying Risky Maneuvers">
+        <instruction>Highlight the riskiest stunts performed by Michelle Yeoh: falls, jumps from vehicles, close proximity to explosions, etc. Analyze the execution of each stunt and any visible wirework if necessary. Discuss safety measures apparent on screen.</instruction>
+      </subsection>
+      <subsection title="Usage of Props and Weapons">
+        <instruction>Identify specific weapons used by Michelle Yeoh. Include firearms (make, model), melee weapons (batons, knives), and improvised weapons (environmental objects). Describe how she uses each weapon, paying attention to accuracy, speed, and effectiveness. Are there instances where weapons malfunction or are ineffective?</instruction>
+      </subsection>
+      <subsection title="Environmental Elements and their Impact on Fights">
+        <instruction>Detail how environmental factors such as rain, height, vehicles in motion affect the fight sequences. Does the setting provide challenges or advantages for Michelle Yeoh's character?</instruction>
+      </subsection>
+    </section>
+
+    <section title="Costumes, Hair, and Makeup">
+      <subsection title="Clothing and Uniforms">
+        <instruction>Describe all on-screen attires of Michelle Yeoh, focusing on her uniform: design, insignia, and condition during different scenes. How does her outfit change during infiltration or action sequences? Comment on practicality versus style.</instruction>
+      </subsection>
+      <subsection title="Hairstyles">
+        <instruction>Describe hair styles of Michelle Yeoh: is it practical, messy or glamorous. Note whether she ties her hair up or leaves down for any scene and impact during fight scene</instruction>
+      </subsection>
+      <subsection title="Makeup presence">
+        <instruction>Describe makeup presence in the film: does she have makeup? If present, is it realistic or unrealistic? Is her makeup consistent? Does it change when action occurs?</instruction>
+      </subsection>
+      <subsection title="Change in Wardrobe">
+        <instruction>Document and breakdown all costume CHANGES for Michelle Yeoh, explain in what scenes she changes the outfit and why.</instruction>
+      </subsection>
+      <subsection title="Subtleties in Uniform">
+        <instruction>Are there subtle details in the uniform that can be missed by average viewer. Does the uniform contain extra pockets or hidden weapon compartments?</instruction>
+      </subsection>
+    </section>
+
+    <section title="Setting and Environment">
+      <subsection title="Notable Locations">
+        <instruction>Identify and describe the various locations used in the film: city streets, jungles, drug lord compounds, etc. Note the significance of location in relation to plot.</instruction>
+      </subsection>
+      <subsection title="Cultural Settings">
+        <instruction>Identify any Vietnamese and/or Hong Kong cultural setting; provide details - are they realistic or glamorized, etc.?</instruction>
+      </subsection>
+      <subsection title="Set Design and Authenticity">
+        <instruction>Describe notable set decor and design elements. Consider if props and vehicles are appropriate for time period.</instruction>
+      </subsection>
+      <subsection title="Environmental Impact on story">
+        <instruction>How do the settings and locations play a crucial role in plot progression?</instruction>
+      </subsection>
+      <subsection title="Geographic location importance">
+        <instruction>Would relocating the movie from Hong Kong to new york have the same overall impact?</instruction>
+      </subsection>
+    </section>
+
+    <section title="Key Dialogue and Character Interactions">
+      <subsection title="Memorable Quotes: Michelle Yeoh">
+        <instruction>Identify and transcribe memorable lines delivered by Michelle Yeoh's character. How do these quotes reflect her personality and motivations?</instruction>
+      </subsection>
+      <subsection title="Partner Chemistry">
+        <instruction>Describe interaction and chemistry between Michelle Yeoh/Jackie Chan portrayed characters. Is it comedic, believable or serious?</instruction>
+      </subsection>
+      <subsection title="Subtext and Implied Meaning">
+        <instruction>Explore any underlying meanings in dialogues between Michelle and Jackie Chan.</instruction>
+      </subsection>
+       <subsection title="Dialogue with Villains">
+        <instruction>Examine dialogues between Michelle Yeoh and Villains.</instruction>
+      </subsection>
+      <subsection title="Cultural reference in dialogue">
+        <instruction>Describe presence of any Vietnamese and/or Hong Kong cultural reference in Michelle Yeoh dialogue</instruction>
+      </subsection>
+    </section>
+     <section title="Significant Vehicles">
+            <subsection title="Car used by Michelle Yeoh's character">
+              <instruction>Provide year, make, model and a description of any cars used by the character portrayed by Michelle Yeoh</instruction>
+            </subsection>
+            <subsection title="Motorcycles used">
+              <instruction>Provide year, make, model and a description of any motorcycles used by the character portrayed by Michelle Yeoh. Note stunts performed using the motorcyle</instruction>
+            </subsection>
+             <subsection title="Trucks and vans usage">
+              <instruction>Provide year, make, model and a description of any vans or trucks used by the character portrayed by Michelle Yeoh</instruction>
+            </subsection>
+            <subsection title="Boats, Ships and other watercraft">
+              <instruction>Describe any boats or ships used by Michelle Yeoh in the film; this will likely be empty however include if available</instruction>
+            </subsection>
+            <subsection title="Airplanes and Helicopters usage">
+              <instruction>Detail any airplanes, helicopters, or any other related flying transport used by Michelle Yeoh in the film</instruction>
+            </subsection>
+          </section>
+  </movie>
+</outline>
+```</response>
+
+The Stunt Woman (1996): Error: Missing output 2. Check dependencies
+
+Police Story 3: Supercop (1992): Error: Missing output 3. Check dependencies.
+
+The Heroic Trio (1993): Error: Missing output 4. Check dependencies.

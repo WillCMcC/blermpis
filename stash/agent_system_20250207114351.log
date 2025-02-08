@@ -1,7 +1,4 @@
 import time
-import os
-import shutil
-from pathlib import Path
 from dataclasses import dataclass
 import xml.etree.ElementTree as ET
 import subprocess
@@ -9,10 +6,8 @@ import os
 import re
 import warnings
 import json
-import requests
 from cmd import Cmd
 from openai import OpenAI
-from prompts import INITIAL_SYSTEM_PROMPT, PLANNING_EXAMPLES, JSON_SYSTEM_PROMPT, CONTENT_SYSTEM_PROMPT
 
 DEEPSEEK_API_KEY='sk-c4e470b3ca36497d87cabd72c79b4fcf'
 OPENROUTER_API_KEY='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'
@@ -139,7 +134,6 @@ class Agent:
                                 'model_call': lambda query: self._execute_reasoning_subjob(query, job.id),
                                 'get_output': lambda key: self.outputs.get(key),
                                 'json': json,  # Make json available to scripts
-                                'requests': requests,  # Make request available to scripts
                                 'append_output': lambda text: self.output_buffer.append(str(text)),
                                 'validate_json': lambda data, keys: all(k in data for k in keys),
                                 'get_json_field': lambda job_id, field: self.outputs.get(job_id, {}).get('response_json', {}).get('content', {}).get(field)
@@ -174,21 +168,6 @@ class Agent:
                             }
                         finally:
                             sys.stdout = old_stdout
-                    elif job.type == 'input':
-                        # Get prompt from content or default
-                        prompt = job.content.strip() or "Please provide input: "
-                        if not prompt.endswith(" "):
-                            prompt += " "
-                        
-                        # Get user input and store it
-                        user_input = input(prompt)
-                        self.outputs[job.id] = {
-                            'raw_response': user_input,
-                            'output': user_input,
-                            'status': 'completed'
-                        }
-                        self.output_buffer.append(user_input)
-                        
                     elif job.type == 'reasoning':
                         # Add query logging
                         print(f"[🤖] Running reasoning job '{job.id}' with model {job.model}")
@@ -215,16 +194,142 @@ class Agent:
                             )
 
                             # Determine system message based on job type
-                            if job.id == "0":  # Initial planning job
-                                system_msg = INITIAL_SYSTEM_PROMPT
+                            if job.id == "0" or job.id == 'initial-thought':  # Initial planning job
+                                system_msg = """You are an AI planner. Generate XML action plans with these guidelines:
+
+CORE PRINCIPLES:
+1. Prefer simple, linear workflows unless complexity is required
+2. Use appropriate formats for data interchange:
+   - JSON when Python code needs structured data
+   - Raw text for human-readable outputs
+3. Ensure clear dependency declarations
+
+JSON USAGE GUIDELINES (use only when needed):
+- Consider format="json" when:
+  * Output requires specific field names
+  * Data will be processed programmatically
+  * Exact structure validation is critical
+  * if a script depends on a reasoning job, that reasoning job MUST be of type JSON
+  * ensure JSON content includes only necessary properties
+
+DATA FLOW RULES:
+- All data MUST flow through declared dependencies
+- Access outputs through:
+  * Bash: $OUTPUT_ID
+  * Python: outputs["ID"]["raw_response"] 
+  * Reasoning: {{outputs.ID.raw_response}}
+
+Actions can specify models:
+   - google/gemini-2.0-flash-001: reasoning, largest context window for long document polishing
+   - openai/gpt-4o: best at trivia and general knowledge 
+   - openai/o1-mini: fast general reasoning 
+   - anthropic/claude-3.5-sonnet: creative writing and poetry
+
+When asked to produce a document, use the reasoning model to generate an outline 
+    - following steps can reference these outlines to fill them in piece by piece
+    - Prioritize making multiple calls when asked to generate long form content. Aim for chunks of 1000-2000 words maximum
+    - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled
+
+PLAN EXAMPLES:
+<action type="reasoning" id="analysis" model="openai/o1-mini-2024-09-12">
+  <content>Generate market analysis report</content>
+</action>
+
+<action type="reasoning" id="structured_analysis" model="anthropic/claude-3-haiku" format="json">
+  <content>Return JSON with { "trends": [], "summary": "" }</content>
+</action>
+
+<action type="python" id="process" depends_on="structured_analysis">
+  <content>
+try:
+    data = outputs["structured_analysis"]["response_json"]["content"]
+    print(f"Found {len(data['trends'])} trends")
+  </content>
+</action>"""
+
                                 # Create messages array with examples
                                 messages = [
                                     {"role": "system", "content": system_msg},
-                                    *PLANNING_EXAMPLES,
+                                    {"role": "user", "content": "Generate an XML action plan to: find the current president"},
+                                    {"role": "assistant", "content": """<?xml version="1.0"?>
+<actions>
+  <action type="bash" id="1" depends_on="2">
+    <content>pip install wikipedia</content>
+  </action>
+  <action type="python" id="2">
+    <content>
+import wikipedia
+try:
+    president_page = wikipedia.page("President of the United States")
+    print(president_page.content)
+except wikipedia.exceptions.PageError:
+    print("Error: Wikipedia page not found.")
+except wikipedia.exceptions.DisambiguationError as e:
+    print(f"Error: {e.options}")
+    </content>
+  </action>
+  <action type="reasoning" id="3" model="google/gemini-2.0-flash-001" depends_on="1">
+    <content>Based on {{outputs.1.raw_response}}, identify current president.</content>
+  </action>
+</actions>"""},
+                                    {"role": "user", "content": "Create a technical document outline with analysis"},
+                                    {"role": "assistant", "content": """<?xml version="1.0"?>
+<actions>
+  <action type="reasoning" id="plan" model="deepseek/deepseek-r1" depends_on="priority" format="json">
+    <content>Create outline focused on technical aspects...</content>
+  </action>
+  <action type="reasoning" id="1" model="anthropic/claude-3.5-sonnet" depends_on="plan">
+    <content>Expand {{outputs.plan.raw_response}} into detailed analysis...</content>
+  </action>
+  <action type="python" id="2" depends_on="plan">
+    <content>
+try:
+    data = outputs["plan"]["response_json"]
+    print(f"Processed result: {data['content']}")
+except Exception as e:
+    print(f"Error processing output: {str(e)}")
+    </content>
+  </action>
+</actions>"""},
+                                    {"role": "user", "content": "go to google news and summarize it for me"},
+                                    {"role": "assistant", "content": """<?xml version="1.0"?>
+<actions>
+  <action type="python" id="1" model="google/gemini-2.0-flash-001">
+    <content>
+import requests
+from bs4 import BeautifulSoup
+
+try:
+    url = "https://news.google.com/news/rss"
+    response = requests.get(url)
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.content, "xml")
+    items = soup.find_all("item")
+
+    news_items = []
+    for item in items:
+        title = item.find("title").text
+        link = item.find("link").text
+        description = item.find("description").text
+        news_items.append({"title": title, "link": link, "description": description})
+
+    print(news_items)
+
+except requests.exceptions.RequestException as e:
+    print(f"Request Error: {e}")
+except Exception as e:
+    print(f"An error occurred: {e}")
+</content>
+  </action>
+  <action type="reasoning" id="2" model="google/gemini-2.0-flash-001" depends_on="1">
+    <content>Summarize the following news articles: {{outputs.1.raw_response}}</content>
+  </action>
+</actions>"""},
                                     {"role": "user", "content": processed_content}
                                 ]
                             else:  # Subsequent reasoning queries
-                                system_msg = CONTENT_SYSTEM_PROMPT
+                                system_msg = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original. NEVER produce incomplete content -- prioritizing ending neatly before tokens run out."""
                                 messages = [
                                     {"role": "system", "content": system_msg},
                                     {"role": "user", "content": processed_content}
@@ -244,7 +349,14 @@ class Agent:
                             if job.response_format == 'json':
                                 api_params["response_format"] = {"type": "json_object"}
                                 # Update system message for JSON responses
-                                system_msg = JSON_SYSTEM_PROMPT
+                                system_msg = """You MUST return valid JSON:
+- Be CONCISE - trim all unnecessary fields/variables                                                                                                                                                                                               
+- Summarize lengthy content instead of verbatim inclusion                                                                                                                                                                                          
+- Use short property names where possible                                                                                                                                                                                                          
+- If content exceeds 200 characters, provide a summary    
+- Escape special characters
+- No markdown code blocks
+- Include ALL data fields"""
                                 messages[0]["content"] = system_msg
 
                         response = client.chat.completions.create(**api_params)
@@ -357,43 +469,20 @@ class AgentCLI(Cmd):
         self.initial_query = None
         self.feedback_history = []  # Track feedback across regenerations
         self.last_generated_plan_xml = None  # Store original XML for recall
-        
-        # Show welcome message
-        print("\n🤖 Welcome to AgentCLI!")
-        print("\nQuick Start:")
-        print("1. Type your request in natural language")
-        print("2. Type 'j' to list and run saved jobs")
-        print("3. Type 'exit' to quit")
-        print("\nExample: create a python script that prints hello world")
-        print("="*50)
     
     def onecmd(self, line):
         """Override to handle natural language inputs properly"""
         if not line:
             return False
-        if line.lower().startswith("job:") or line.split()[0].lower() not in ['exit', 'j']:
+        if line.split()[0].lower() not in ['exit']:
             return self.default(line)
         return super().onecmd(line)
     
     def default(self, line):
-        """Handle natural language queries and job execution"""
+        """Handle natural language queries"""
         if line.strip().lower() == 'exit':
             return self.do_exit('')
             
-        if line.lower().startswith("job:"):
-            job_name = line.split(":", 1)[1].strip()
-            try:
-                xml_content = self._load_job(job_name)
-                print(f"📂 Executing saved job: {job_name}")
-                self.agent = Agent()
-                self.agent.add_job(xml_content)
-                self.last_generated_plan_xml = xml_content
-                self.agent.process_queue()
-                self._show_results()
-            except Exception as e:
-                print(f"❌ Error loading job: {str(e)}")
-            return
-
         # Reset agent state for new query
         self.agent = Agent()  # Fresh agent instance
         self.initial_query = line  # Store original query for potential reroll
@@ -411,20 +500,6 @@ class AgentCLI(Cmd):
                     - Break long-form content into manageable chunks
                 </content>
             </action>
-            <action id="1" type="reasoning" depends_on="0" model="google/gemini-2.0-flash-001">
-                <content>
-                    Review and improve this plan for efficiency and correctness:
-                    {{{{outputs.0.raw_response}}}}
-                    
-                    Consider:
-                    1. Are dependencies properly declared?
-                    2. Are appropriate formats (JSON/text) used?
-                    3. Can steps be parallelized?
-                    4. Are error handling measures in place?
-                    
-                    Return ONLY the improved XML plan.
-                </content>
-            </action>
         </actions>""")
         self.agent.process_queue()
         self._handle_response()
@@ -438,13 +513,13 @@ class AgentCLI(Cmd):
             return
             
         # Find the initial reasoning job
-        initial_job = next((job for job in self.agent.job_queue if job.id == "1"), None)
+        initial_job = next((job for job in self.agent.job_queue if job.id == "0"), None)
         
         if initial_job and initial_job.status.startswith('failed'):
             print(f"\n❌ Initial processing failed: {initial_job.status.split(':', 1)[-1].strip()}")
             return
                 
-        last_output = self.agent.outputs.get("1")
+        last_output = self.agent.outputs.get("0")
         
         if not last_output:
             print("\n🔍 No response received - Possible API issues or empty response")
@@ -534,15 +609,6 @@ class AgentCLI(Cmd):
                         <action id="0" type="reasoning">
                             <content>Generate an XML action plan to: {original_query}{feedback_clause}</content>
                         </action>
-                        <action id="1" type="reasoning" depends_on="0" model="google/gemini-2.0-flash-001">
-                            <content>
-                                Review and improve this plan: 
-                                {{{{outputs.0.raw_response}}}}
-                                Consider user feedback: {feedback}
-                                
-                                Return ONLY the improved XML plan.
-                            </content>
-                        </action>
                     </actions>""")
                     self.agent.process_queue()
                     self._handle_response()  # Recursively handle new plan
@@ -593,7 +659,6 @@ class AgentCLI(Cmd):
             print("  p - Rerun last plan")
             print("  f - Add feedback & regenerate")
             print("  x - Show generated XML plan")
-            print("  s - Save current job plan")
             print("  exit - Return to prompt")
             choice = input("agent(post)> ").lower()
             
@@ -645,10 +710,6 @@ class AgentCLI(Cmd):
                     print("="*50)
                 else:
                     print("No XML plan stored")
-            elif choice == 's':
-                job_name = input("Enter name to save job as: ").strip()
-                if job_name:
-                    self._save_job(job_name)
             elif choice == 'exit':
                 break
             else:
@@ -659,62 +720,6 @@ class AgentCLI(Cmd):
         self.agent.outputs = {}
         self.initial_query = None
     
-    def _save_job(self, job_name: str):
-        """Save the current XML plan to jobs directory"""
-        jobs_dir = Path("jobs")
-        jobs_dir.mkdir(exist_ok=True)
-        
-        if not self.last_generated_plan_xml:
-            print("No plan to save")
-            return
-            
-        dest = jobs_dir / f"{job_name}.xml"
-        dest.write_text(self.last_generated_plan_xml, encoding='utf-8')
-        print(f"✅ Saved job to {dest}")
-
-    def _load_job(self, job_name: str) -> str:
-        """Load XML from jobs directory"""
-        job_path = Path("jobs") / f"{job_name}.xml"
-        if not job_path.exists():
-            raise FileNotFoundError(f"Job {job_name} not found")
-        return job_path.read_text(encoding='utf-8')
-
-    def do_j(self, arg):
-        """List and select available jobs"""
-        jobs_dir = Path("jobs")
-        if not jobs_dir.exists() or not list(jobs_dir.glob("*.xml")):
-            print("No saved jobs found")
-            return
-
-        # List available jobs
-        print("\nAvailable jobs:")
-        jobs = list(jobs_dir.glob("*.xml"))
-        for i, job_path in enumerate(jobs, 1):
-            job_name = job_path.stem
-            print(f"{i}. {job_name}")
-
-        # Get user selection
-        while True:
-            choice = input("\nSelect job number (or 'exit'): ").strip()
-            if choice.lower() == 'exit':
-                return
-            try:
-                idx = int(choice) - 1
-                if 0 <= idx < len(jobs):
-                    selected_job = jobs[idx].stem
-                    print(f"\n📂 Executing saved job: {selected_job}")
-                    xml_content = self._load_job(selected_job)
-                    self.agent = Agent()
-                    self.agent.add_job(xml_content)
-                    self.last_generated_plan_xml = xml_content
-                    self.agent.process_queue()
-                    self._show_results()
-                    break
-                else:
-                    print("Invalid job number")
-            except ValueError:
-                print("Please enter a valid number")
-
     def do_exit(self, arg):
         """Exit the CLI"""
         return True

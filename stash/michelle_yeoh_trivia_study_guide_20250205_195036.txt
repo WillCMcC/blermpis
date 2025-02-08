@@ -1,0 +1,250 @@
+```xml
+<?xml version="1.0"?>
+<actions>
+  <action type="reasoning" id="0" model="google/gemini-2.0-flash-001">
+    <content>OK. Here is the combined and polished Michelle Yeoh Movie Trivia Study Guide:
+
+```
+# Michelle Yeoh Movie Trivia Study Guide
+
+## Introduction
+
+Michelle Yeoh is a celebrated figure in action cinema, known for her exceptional martial arts skills, daring stunts, and captivating performances. This study guide delves into some of her most iconic films, offering detailed trivia questions and insights into the action sequences, character nuances, and memorable moments that define her impressive career.
+
+## I. Yes Madam (1985)
+
+### A. Key Fight Scenes &amp; Stunts
+
+1.  **Subway fight:** Describe the specific environment, number of combatants, and any unique moves.
+    *   How many men does Inspector Ng fight in the initial subway encounter before Inspector Carrie arrives? (Answer: 4)
+    *   What weapon does one of the thugs try to attack Inspector Ng with in the subway fight? (Answer: A knife)
+    *   During the subway fight, what camera trick is used to emphasize the speed and impact of Inspector Ng's kicks? (Answer: Speed ramping/changing the frame rate)
+    *   What martial arts style is most prominently featured in this subway fight? (Answer: A mix of Karate and Kickboxing)
+
+2.  **Apartment raid:** Focus on the use of furniture and confined space.
+    *   What piece of furniture does Inspector Ng use to disarm a thug wielding a knife in the apartment raid? (Answer: A coffee table)
+    *   What does Aspirin use to defend himself during the apartment raid? (Answer: a frying pan)
+
+3.  **Final warehouse fight:** The variety of weapons used and the geography of the set.
+      * What part of Asprin gets injured during the apartment raid? (Answer: His head)
+      * Before entering the apartment, what apartment number are they going in to? (Answer: 4c)
+    *   Name three different weapons used by the villains in the final warehouse fight. (Answer: Pipes, knives, crowbars, guns)
+        * What is the main structure within the warehouse that is used as a fighting platform? (Answer: Scaffolding)
+         * During the final fight, Inspector Ng jumps between how many platforms? (Answer: 2)
+            * What objects from the warehouse are suspended from the ceiling that the characters need to avoid? (Answer: Large pipes or metal beams)
+
+### B. Notable Props &amp; Costumes
+
+1.  **Michelle Yeoh's police uniform:** Specific details of the uniform and equipment.
+            * What color is Inspector Ng's police uniform shirt? (Answer: White) Also blue, depending on the scene
+    *   Besides a gun, what other piece of equipment does Inspector Ng carry on her belt? (Answer: Handcuffs)
+    
+
+2.  **The stolen microfilm:** Describe its appearance and how it is hidden.
+    *     * The microfilm is hidden inside what seemingly innocuous object? (Answer: A calculator)
+         * What brand of calculator are they trying to steal? (Answer: Canon)
+
+3.  **Richard Ng's disguises:** Mention a specific memorable disguise.
+    *   What is one of the prominent disguises worn by Asprin to infiltrate the villains' hideout? (Answer: A construction worker/ a telephone repair man)
+
+### C. Character Details &amp; Dialogue
+
+1.  **Inspector Ng (Michelle Yeoh):** Her no-nonsense attitude and fighting style.
+     * What is Inspector Ng's first name in the film? (Answer: Michelle)
+            * What hand does Inspector Ng wear her watch on? (Answer: Left)
+
+2.  **Asprin (Richard Ng):** His comedic relief and bumbling nature.
+  * What is the name of Asprin's partner? (Answer: Strepsil)
+            * What is Asprin's badge number? (Answer: 9427)
+
+3.  **Panther (John Shum):** Describe his role and noticeable characteristics
+  * What unusual food item does Panther frequently consume? (Answer: Pickled Pigs Feet)
+            * What song does Panther sing in the Mahjong Parlor? (Answer: A Better Tomorrow theme song)
+
+## II. The Stunt Woman (1996)
+
+### A. Key Fight Scenes &amp; Stunts
+
+1.  **Motorcycle chase scene:** Specific obstacles and stunts performed.
+    *   a. What specific model of motorcycle does Ah Kam (Michelle Yeoh) ride during most of this scene?
+    *   b. Describe at least three distinct obstacles she navigates – e.g., stairs, market stalls, other vehicles.
+    *   c. Is there a visible stunt double used for any jump or dangerous maneuver? If so, describe the moment.
+    *   d. What is the ultimate outcome of the motorcycle chase, i.e. does she catch the suspect, get away, crash?
+
+2.  **Studio fight scene:** The use of film equipment as weapons.
+    *   a. Name three different pieces of film equipment that are used as weapons during this fight.
+    *   b. Describe a specific stunt involving wires or harnesses used in the scene.
+    *   c. Is there a noticeable shift in fighting style when Ah Kam is using film equipment, and if so, how does it manifest?
+
+3.  **Final showdown:** Unique elements of the setting and the stunt work involved.
+    *   a. What is the notable environmental feature of the setting for the final showdown? (e.g., construction site, rooftop, burning building).
+    *   b. Name at least two different types of stunts performed during this fight (e.g., falls, wire work, vehicle stunts).
+   * c. Describe the method of how the fight is ultimately won.
+
+### B. Notable Props &amp; Costumes
+
+1.  **Ah Kam's (Michelle Yeoh) various stunt outfits:** Emphasize different styles.
+    *   a. Describe at least three different stunt outfits worn by Ah Kam, emphasizing the specific function or aesthetic of each (e.g., a padded suit for falls, a revealing outfit for a period film, a practical outfit for a construction site scene).
+    *   b. Is there any damage or wear and tear visible on the costumes during the film, and if so which costume shows the most wear?
+    *   c. What type of footwear does Ah Kam typically wear?
+
+2.  **The film set props:** Note any that are prominently featured in stunts.
+    *    a. Identify a film prop that is prominently featured in at least one stunt.
+         * b. Describe the condition of the prop: either brand new, very used, or damaged after a stunt.
+
+3.  **The director's (Sammo Hung) attire:** Describe his iconic look.
+   * a. Describe Sammo Hung's typical outfit.
+         * b. Is there any variation such as a costume for a scene he is directing within the film.
+
+### C. Character Details &amp; Dialogue
+
+1.  **Ah Kam (Michelle Yeoh):** Her determination and the challenges she faces.
+    *  a. How does Ah Kam’s character interact with the male stuntmen on set? Is there camaraderie, competition, or conflict? Provide a specific example.
+         * b. What is Ah Kam’s primary motivation in her approach to stunt work? Is it the money, challenge, fame, or something else?
+
+2.  **The director (Sammo Hung):** His intensity and demanding nature.
+    *  a. What is the director’s attitude towards Ah Kam and the other stunt performers? Is he supportive, demanding, or exploitative?
+         * b. Is there friendly banter between the director (Sammo Hung) and Ah Kam (Michelle Yeoh) on set?
+
+3.  **Memorable quotes about the stunt industry.**
+    * a. What is one example of a quote or line of dialogue that highlights the dangers or difficulties of being a stunt performer?
+         * b. What is one example of a quote or line of dialogue that reveals the low pay and how stunt work is perceived: such as dangerous, yet unglamorous?
+
+## III. Police Story 3: Supercop (1992)
+
+### A. Key Fight Scenes &amp; Stunts
+
+1.  **Opening drug bust:**
+    *   a. Describe the setting: A bustling marketplace in mainland China. Note the presence of livestock (chickens, pigs) and the use of firecrackers.
+    *   b. Specific stunts: Jackie Chan swinging from a rope onto a moving vehicle, Michelle Yeoh leaping across rooftops.
+    *   c. Vehicle chase: Highlight the use of motorcycles and small trucks, including specific makes (if identifiable).
+
+2.  **Rope escape from building:**
+    *   a. Building height: Specify approximate number of stories.
+    *   b. Escape method: Details of the rope apparatus used and the challenges faced by both Jackie and Michelle.
+    *   c. Camera angles: Note the wide shots that emphasize the danger.
+
+3.  **Bus Fight and subsequent Motorcycle Jump and Train Finale:**
+    *   a. Bus Details: Note the type of bus that suffers various levels of damage, culminating in the side being torn off.
+    *   b. Fight choreography: Describe specific moves used by Jackie and Michelle against the drug dealers.
+    *   c. The Motorcycle Jump: Describe where the motorcycle comes from, and how it leads to the train.
+    *   d. Train Finale: Describe the condition of the train, number of cars, and degree of damage.
+
+4.  **Skyscraper stunts:**
+    *   a. Building Description: Emphasize the height and modern architecture.
+    *   b. Stunts: Detail the window washing platform scene, including the height and the methods used to traverse the building's exterior.
+
+### B. Notable Props &amp; Costumes
+
+1.  **Michelle Yeoh's undercover attire:**
+    *   a. Initial outfit: Simple, practical clothing suitable for blending into the local population (e.g., plain shirts, trousers, and sneakers).
+    *   b. Later disguises: More stylish outfits appropriate for infiltrating the drug lord's inner circle (e.g., dresses, jewelry). Specifically, the cocktail dress at the villain's mansion.
+
+2.  **Jackie Chan's outfits:**
+    *   a. Undercover attire: Casual clothing designed to be less conspicuous(e.g. light colored pants, button up shirt).
+    *   b. Action wear: More durable and functional clothing for fight scenes (e.g., jeans, t-shirts).
+
+3.  **The villain's (Kenneth Tsang) mansion:**
+    *   a. Exterior: Describe the architectural style and any notable features (e.g., swimming pool, gardens).
+    *   b. Interior: Focus on opulence and extravagance, noting specific details like chandeliers, expensive artwork, and the layout of the rooms.
+
+4. **The Drug Shipment:**
+
+    *   a. Describe the size and packaging of the drugs.
+    *   b. Detail how the drugs were shipped across borders.
+
+5. **Vehicle Details:**
+
+    *   a. The Makes and Models involved in the opening chase.
+    *   b. The final Lamborghini driven by the Villain
+
+### C. Character Details &amp; Dialogue
+
+1.  **Inspector Jessica Yang (Michelle Yeoh):**
+    *   a. Bravery and resourcefulness: Give specific examples of her quick thinking and willingness to take risks.
+    *   b. Fighting style: Emphasize her agility, precision, and use of environmental objects.
+
+2.  **Jackie Chan's comedic asides and interactions:**
+    *   a. Funny lines: "I'm just a cop!"
+    *   b. Physical comedy: Misunderstandings and clumsy moments during the undercover operation.
+
+3.  **Dialogue related to the undercover operation:**
+    *   a. Instructions and briefings: Brief, direct, and to the point.
+    *   b. Improvisation: Showcasing the agents' ability to adapt to unexpected situations.
+
+4.  **Key exchanges between Jackie and Michelle:**
+    *   a. Discuss the development of the relationship between the two cops.
+    *   b. Note instances of playful banter and mutual respect.
+
+5.  **Villain's Motivation**
+
+    *  a. The villain's reasoning for conducting illegal activities
+
+## IV. The Heroic Trio (1993)
+
+### A. Key Fight Scenes &amp; Stunts
+
+1.  **Invisible Woman's (Michelle Yeoh) first appearance:**
+    *   Describe how her invisibility is visually represented (e.g., shimmering, distortion). Is it full or partial?
+    *   Note the location: a dark alleyway, a specific building, etc.
+    *   What weapons techniques does she demonstrate?
+
+2.  **The battle against the Evil Master's henchmen:**
+    *   Describe the fighting styles used by each of the Heroic Trio (swords, guns, martial arts).
+    *   Note if certain henchmen have unique abilities or weapons.
+    *   Is there a location (abandoned building, city street)?
+
+3.  **The final confrontation inside the Evil Master's lair:**
+    *   Describe the environmental hazards (acid pools, electrified floors, traps).
+    *   How do the Trio overcome these hazards using their powers and skills?
+    *   Specific stunts performed within the lair (jumps, falls, wire work).
+
+4. **Specific superpowers used by the trio.** Mention those such as Wonder Woman's use of a metal helmet.
+
+### B. Notable Props &amp; Costumes
+
+1.  **Invisible Woman's (Michelle Yeoh) mask and weaponry:**
+    *   Describe the mask's design and functionality (e.g., night vision, communication).
+    *   What specific weapons does she use (swords, throwing knives, etc.)?
+    *   Is there a visible power source for her invisibility?
+
+2.  **Wonder Woman's (Anita Mui) outfit:**
+    *   Describe the colors, materials, and overall style of her costume.
+    *   Does she have any specific accessories (cape, boots, bracelets)?
+
+3.  **Thief Catcher's (Maggie Cheung) eccentric style:**
+    *   Notable accessories (e.g., goggles, unusual jewelry, distinctive hairstyle).
+    *   Describe her weapons of choice (guns, whips, bombs).
+    *   Note on Ching's use of grenades as an example.
+
+4.  **The Evil Master's lair:**
+    *   Describe visually distinctive elements (e.g., statues, torture devices, control panels).
+    *   Any specific vehicles or equipment found within the lair (e.g., flying machines, experimental weapons).
+
+5.  **Cribs for the kidnapped babies:**
+
+    * Any specific colors visible?
+
+### C. Character Details &amp; Dialogue
+
+1.  **Invisible Woman (Michelle Yeoh):**
+    *   Describe her internal conflict and motivations related to the Evil Master.
+    *   Any recurring phrases or themes in her dialogue related to duty or sacrifice?
+    * Mention her history as a former servant of the Evil Master.
+
+2.  **Wonder Woman (Anita Mui):**
+    *   Her leadership qualities, maternal instincts, and relationship with her husband.
+    *   Any specific phrases or themes in her dialogue related to protecting the innocent?
+
+3.  **Thief Catcher (Maggie Cheung):**
+    *   Her rebellious attitude, unorthodox methods, and cynical worldview.
+    *   Any memorable lines of dialogue that showcase her personality?
+
+4.  **Recurring dialogue themes:**
+    *   The concept of loyalty and betrayal.
+    *   Sacrifice for the greater good.
+    *   The blurred lines between good and evil.
+```</content>
+  </action>
+</actions>
+```

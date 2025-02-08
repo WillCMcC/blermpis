@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<actions>
+    <action type="python" id="fetch_google_news">
+        <content>
+import requests
+from bs4 import BeautifulSoup
+import json
+
+try:
+    response = requests.get("https://news.google.com/news/rss")
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.content, "xml")
+    items = soup.find_all("item")
+    news_items = []
+    for item in items:
+        title = item.find("title").text
+        link = item.find("link").text
+        description = item.find("description").text
+        news_items.append({"title": title, "link": link, "description": description})
+
+    print(json.dumps(news_items))
+except requests.exceptions.RequestException as e:
+    print(f"Error fetching Google News: {e}")
+    print("[]")
+except Exception as e:
+    print(f"Error parsing Google News: {e}")
+    print("[]")
+</content>
+        <format>json</format>
+    </action>
+
+    <action type="reasoning" id="compile_summary" model="google/gemini-2.0-flash-001" depends_on="fetch_google_news">
+        <content>
+Provide an executive summary (5-10 bullet points) of top news stories.
+
+Source: Google News: {{outputs.fetch_google_news.raw_response}}
+</content>
+    </action>
+
+    <action type="python" id="save_summary" depends_on="compile_summary">
+        <content>
+import datetime
+
+try:
+    summary = outputs["compile_summary"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"news_summary_{timestamp}.md"
+
+    with open(filename, "w") as f:
+        f.write(f"# Executive News Summary - {timestamp}\n\n{summary}")
+
+    print(f"Summary saved to {filename}")
+except Exception as e:
+    print(f"Error saving summary: {e}")
+</content>
+    </action>
+</actions>
