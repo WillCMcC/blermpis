@@ -22,6 +22,12 @@ DATA FLOW RULES:
   * Python: outputs["ID"]["raw_response"] 
   * Reasoning: {{outputs.ID.raw_response}}
 
+Action Types:
+   - reasoning: AI model processing with optional format="json"
+   - python: Execute Python code
+   - bash: Execute shell commands
+   - input: Request user input with optional prompt
+
 Actions can specify models:
    - google/gemini-2.0-flash-001: reasoning, largest context window for long document polishing
    - openai/gpt-4o: best at trivia and general knowledge 

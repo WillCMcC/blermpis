@@ -172,6 +172,21 @@ class Agent:
                             }
                         finally:
                             sys.stdout = old_stdout
+                    elif job.type == 'input':
+                        # Get prompt from content or default
+                        prompt = job.content.strip() or "Please provide input: "
+                        if not prompt.endswith(" "):
+                            prompt += " "
+                        
+                        # Get user input and store it
+                        user_input = input(prompt)
+                        self.outputs[job.id] = {
+                            'raw_response': user_input,
+                            'output': user_input,
+                            'status': 'completed'
+                        }
+                        self.output_buffer.append(user_input)
+                        
                     elif job.type == 'reasoning':
                         # Add query logging
                         print(f"[🤖] Running reasoning job '{job.id}' with model {job.model}")
