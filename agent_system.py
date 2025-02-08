@@ -345,7 +345,7 @@ class AgentCLI(Cmd):
         """Override to handle natural language inputs properly"""
         if not line:
             return False
-        if line.lower().startswith("job:") or line.split()[0].lower() not in ['exit']:
+        if line.lower().startswith("job:") or line.split()[0].lower() not in ['exit', 'j']:
             return self.default(line)
         return super().onecmd(line)
     
