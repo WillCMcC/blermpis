@@ -409,6 +409,20 @@ class AgentCLI(Cmd):
                     - Break long-form content into manageable chunks
                 </content>
             </action>
+            <action id="1" type="reasoning" depends_on="0" model="google/gemini-2.0-flash-001">
+                <content>
+                    Review and improve this plan for efficiency and correctness:
+                    {{{{outputs.0.raw_response}}}}
+                    
+                    Consider:
+                    1. Are dependencies properly declared?
+                    2. Are appropriate formats (JSON/text) used?
+                    3. Can steps be parallelized?
+                    4. Are error handling measures in place?
+                    
+                    Return ONLY the improved XML plan.
+                </content>
+            </action>
         </actions>""")
         self.agent.process_queue()
         self._handle_response()
@@ -422,13 +436,13 @@ class AgentCLI(Cmd):
             return
             
         # Find the initial reasoning job
-        initial_job = next((job for job in self.agent.job_queue if job.id == "0"), None)
+        initial_job = next((job for job in self.agent.job_queue if job.id == "1"), None)
         
         if initial_job and initial_job.status.startswith('failed'):
             print(f"\n❌ Initial processing failed: {initial_job.status.split(':', 1)[-1].strip()}")
             return
                 
-        last_output = self.agent.outputs.get("0")
+        last_output = self.agent.outputs.get("1")
         
         if not last_output:
             print("\n🔍 No response received - Possible API issues or empty response")
@@ -517,6 +531,15 @@ class AgentCLI(Cmd):
                     self.agent.add_job(f"""<actions>
                         <action id="0" type="reasoning">
                             <content>Generate an XML action plan to: {original_query}{feedback_clause}</content>
+                        </action>
+                        <action id="1" type="reasoning" depends_on="0" model="google/gemini-2.0-flash-001">
+                            <content>
+                                Review and improve this plan: 
+                                {{{{outputs.0.raw_response}}}}
+                                Consider user feedback: {feedback}
+                                
+                                Return ONLY the improved XML plan.
+                            </content>
                         </action>
                     </actions>""")
                     self.agent.process_queue()
