@@ -630,6 +630,42 @@ class AgentCLI(Cmd):
             raise FileNotFoundError(f"Job {job_name} not found")
         return job_path.read_text(encoding='utf-8')
 
+    def do_j(self, arg):
+        """List and select available jobs"""
+        jobs_dir = Path("jobs")
+        if not jobs_dir.exists() or not list(jobs_dir.glob("*.xml")):
+            print("No saved jobs found")
+            return
+
+        # List available jobs
+        print("\nAvailable jobs:")
+        jobs = list(jobs_dir.glob("*.xml"))
+        for i, job_path in enumerate(jobs, 1):
+            job_name = job_path.stem
+            print(f"{i}. {job_name}")
+
+        # Get user selection
+        while True:
+            choice = input("\nSelect job number (or 'exit'): ").strip()
+            if choice.lower() == 'exit':
+                return
+            try:
+                idx = int(choice) - 1
+                if 0 <= idx < len(jobs):
+                    selected_job = jobs[idx].stem
+                    print(f"\n📂 Executing saved job: {selected_job}")
+                    xml_content = self._load_job(selected_job)
+                    self.agent = Agent()
+                    self.agent.add_job(xml_content)
+                    self.last_generated_plan_xml = xml_content
+                    self.agent.process_queue()
+                    self._show_results()
+                    break
+                else:
+                    print("Invalid job number")
+            except ValueError:
+                print("Please enter a valid number")
+
     def do_exit(self, arg):
         """Exit the CLI"""
         return True
