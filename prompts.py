@@ -40,27 +40,106 @@ When asked to produce a document, use the reasoning model to generate an outline
     - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled"""
 
 PLANNING_EXAMPLES = [
-    {"role": "user", "content": "Generate an XML action plan to: find the current president"},
+    {"role": "user", "content": "Generate an XML action plan to: find me deals on Craigslist for PC hardware in Portland, Oregon"},
     {"role": "assistant", "content": """<?xml version="1.0"?>
 <actions>
-  <action type="bash" id="1" depends_on="2">
-    <content>pip install wikipedia</content>
-  </action>
-  <action type="python" id="2">
-    <content>
-import wikipedia
+    <action type="bash" id="install_requests">
+        <content>pip install requests</content>
+    </action>
+    
+    <action type="python" id="fetch_craigslist" depends_on="install_requests">
+        <content>
+import requests
+import re
+import json  # Import the json module
+
+def clean_text(text):
+    return re.sub(r'\s+', ' ', text).strip()
+
+def fetch_craigslist_data():
+    base_url = f"https://portland.craigslist.org/search/clk/syp"  # syp is computers - system parts
+    params = {
+        "searchNearby": 1,
+        "nearbyArea": "portland",
+    }
+
+    try:
+        response = requests.get(base_url, params=params, timeout=10) # Add timeout
+        if response.status_code == 200:
+            
+            print((response.content))
+            return response.content #Return results for easier testing
+        else:
+            print(f"Failed to retrieve data. Status code: {response.status_code}")
+            return []
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+        return []
+    except Exception as e:
+        print(f"General error: {e}")
+        return []
+
+
+#No longer needed to print here, since it's being printed inside function
+#print(all_results)
+print((fetch_craigslist_data()))
+</content>
+    </action>
+
+    <action type="reasoning" id="analyze_listings_1" model="google/gemini-2.0-flash-001" format="json" depends_on="fetch_craigslist">
+        <content>
+You are a PC hardware expert analyzing Craigslist listings to identify the best deals in Portland, Oregon (specifically Clark County Craigslist).
+
+Here are the Craigslist listings:
+{{outputs.fetch_craigslist.raw_response}}
+
+Analyze all provided listings to evaluate which parts represent the best value based on current market prices. Consider the following:
+
+*   **Price vs. Performance:** Prioritize components offering the best performance per dollar based on your expert knowledge of PC hardware.  Consider used prices vs new prices.
+    **Highlight the top deals based on the information provided. Provide an estimate of the parts' values if calculating full system estimates.
+*   **Avoid hallucinating any further details not provided by the Craigslist information.**
+
+Output a JSON object with a "top_deals" array containing the best deals. For each deal, include the "title", "url", "price", and "reason" as keys. Also include a key containing the number of listings analyzed.
+</content>
+    </action>
+
+    <action type="reasoning" id="write_markdown_report_1" model="anthropic/claude-3.5-sonnet" depends_on="analyze_listings_1">
+        <content>
+You are an expert PC hardware reviewer. Based on the following JSON data containing information about craigslist deals, write a markdown report summarizing the best deals for building a gaming PC in Portland, Oregon. Only provide the Markdown document, no surrounding text.
+
+Include an introductory paragraph explaining the methodology used (e.g., analyzing Craigslist listings for price/performance).
+
+For each of the top deals from the "top_deals" array, create a section with:
+
+*   The title of the listing as a header.
+*   A link to the Craigslist listing.
+*   The price.
+*   A detailed explanation of why this is a good deal, referencing specific components and their estimated market value based on expert knowledge.
+
+Conclude with any overall thoughts or warnings about buying used hardware.  Make sure the report is well-organized and easy to read.
+
+Here is the JSON data:
+{{outputs.analyze_listings_1.raw_response}}
+</content>
+    </action>
+
+    <action type="python" id="save_report_1" depends_on="write_markdown_report_1">
+        <content>
+import datetime
+
 try:
-    president_page = wikipedia.page("President of the United States")
-    print(president_page.content)
-except wikipedia.exceptions.PageError:
-    print("Error: Wikipedia page not found.")
-except wikipedia.exceptions.DisambiguationError as e:
-    print(f"Error: {e.options}")
-    </content>
-  </action>
-  <action type="reasoning" id="3" model="google/gemini-2.0-flash-001" depends_on="1">
-    <content>Based on {{outputs.1.raw_response}}, identify current president.</content>
-  </action>
+    report = outputs["write_markdown_report_1"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"craigslist_pc_deals_{timestamp}.md"
+
+    with open(filename, "w") as f:
+        f.write(report)
+
+    print(f"Report saved to {filename}")
+except Exception as e:
+    print(f"Error saving report: {e}")
+</content>
+    </action>
 </actions>"""},
     {"role": "user", "content": "Find out what is happening today and make me a report"},
     {"role": "assistant", "content": """<?xml version="1.0"?>
@@ -99,7 +178,7 @@ import requests
 from bs4 import BeautifulSoup
 
 try:
-    response = requests.get("https://en.wikipedia.org/wiki/Main_Page")
+    response = requests.get("https://en.wikipedia.org/wiki/Portal:Current_events")
     response.raise_for_status()
     soup = BeautifulSoup(response.content, "html.parser")
     
