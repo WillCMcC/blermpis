@@ -19,7 +19,7 @@ class AgentCLI(Cmd):
         self.initial_query = None
         self.feedback_history = []  # Track feedback across regenerations
         self.last_generated_plan_xml = None  # Store original XML for recall
-        self.history_file = Path.home() / ".agent_prompt_history"
+        self.history_file = Path.cwd() / ".agent_prompt_history"
         self._load_history()
         
         # Show welcome message
