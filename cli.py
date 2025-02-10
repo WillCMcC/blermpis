@@ -237,11 +237,14 @@ class AgentCLI(Cmd):
 
     def _show_results(self):
         print("\n" + "="*50 + "\n📊 Execution Results\n" + "="*50)
+        has_failures = False
         for job in self.agent.job_queue:
             if job.id == "0":  # Skip planning job
                 continue
                 
             result = self.agent.outputs.get(job.id, {})
+            if job.status != 'completed':
+                has_failures = True
             status_icon = "✅" if job.status == 'completed' else "❌"
             icon = "🖥️" if job.type == 'bash' else "🐍" if job.type == 'python' else "💭"
             model = f"Model: {job.model}{' [JSON]' if job.response_format == 'json' else ''}" if job.model else ""
@@ -256,12 +259,18 @@ class AgentCLI(Cmd):
         # Add post-execution options
         while True:
             print("\nPost-execution options:")
-            print("  q - Rerun original query")
-            print("  p - Rerun last plan")
-            print("  f - Add feedback & regenerate")
-            print("  x - Show generated XML plan")
-            print("  s - Save current job plan")
-            print("  exit - Return to prompt")
+            if has_failures:
+                print("  f - Add feedback & debug failure")
+                print("  x - Show generated XML plan")
+                print("  s - Save current job plan")
+                print("  exit - Return to prompt")
+            else:
+                print("  q - Rerun original query")
+                print("  p - Rerun last plan")
+                print("  f - Add feedback & regenerate")
+                print("  x - Show generated XML plan")
+                print("  s - Save current job plan")
+                print("  exit - Return to prompt")
             choice = input("agent(post)> ").lower()
             
             if choice == 'q':
@@ -287,21 +296,52 @@ class AgentCLI(Cmd):
             elif choice == 'f':
                 feedback = input("Enter feedback: ").strip()
                 if feedback:
-                    self.feedback_history.append(feedback)
-                    print("\n🔄 Regenerating with feedback...")
-                    feedback_clause = "\n\nFeedback history:\n- " + "\n- ".join(self.feedback_history)
-                    self.agent = Agent()
-                    self.agent.add_job(f"""<actions>
-                        <action id="0" type="reasoning">
-                            <content>Generate an XML action plan to: {self.initial_query}{feedback_clause}
-                            
-                            Previous Plan:
-                            {self.last_generated_plan_xml}
+                    if has_failures:
+                        print("\n🔄 Regenerating with failure analysis...")
+                        self.feedback_history.append(f"Previous failure: {feedback}")
+                        failure_context = f"""
+                        Previous failed plan:
+                        {self.last_generated_plan_xml}
 
-                            Don't change anything unless the user has specifically requested it.
-                            </content>
-                        </action>
-                    </actions>""")
+                        User feedback: {feedback}
+                        """
+                        self.agent = Agent()
+                        self.agent.add_job(f"""<actions>
+                            <action id="0" type="reasoning">
+                                <content>
+                                    Analyze this failed plan and generate an improved version:
+                                    {failure_context}
+                                    
+                                    Focus on:
+                                    1. Identifying dependency chain issues
+                                    2. Checking for missing environment requirements
+                                    3. Validating JSON structures if used
+                                    4. Suggesting error handling improvements
+                                </content>
+                            </action>
+                            <action id="1" type="reasoning" depends_on="0" model="google/gemini-2.0-flash-001">
+                                <content>
+                                    Convert this analysis into an improved XML plan.
+                                    Keep working parts intact, only modify problematic sections.
+                                </content>
+                            </action>
+                        </actions>""")
+                    else:
+                        self.feedback_history.append(feedback)
+                        print("\n🔄 Regenerating with feedback...")
+                        feedback_clause = "\n\nFeedback history:\n- " + "\n- ".join(self.feedback_history)
+                        self.agent = Agent()
+                        self.agent.add_job(f"""<actions>
+                            <action id="0" type="reasoning">
+                                <content>Generate an XML action plan to: {self.initial_query}{feedback_clause}
+                                
+                                Previous Plan:
+                                {self.last_generated_plan_xml}
+
+                                Don't change anything unless the user has specifically requested it.
+                                </content>
+                            </action>
+                        </actions>""")
                     self.agent.process_queue()
                     self._handle_response()
                     break
@@ -321,10 +361,11 @@ class AgentCLI(Cmd):
             else:
                 print("Invalid option")
 
-        # Clear state after processing
-        self.agent.job_queue = []
-        self.agent.outputs = {}
-        self.initial_query = None
+        # Only clear state after exiting post-execution menu if no failures
+        if not has_failures:
+            self.agent.job_queue = []
+            self.agent.outputs = {}
+            self.initial_query = None
     
     def _save_job(self, job_name: str):
         """Save the current XML plan to jobs directory"""
