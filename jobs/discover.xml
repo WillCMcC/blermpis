@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<actions>
+    <action type="reasoning" id="define_novel_area" model="openai/gpt-4o" format="json">
+        <content>
+I need to identify a potential area for a novel contribution to human knowledge. Based on my vast dataset of information, select a field that is important to the community but also under-explored, and suitable for inquiry with large language models. For example, a highly specific interdisciplinary domain, or a niche area of social science. Specify this area.
+
+In addition, I need to come up with a few concrete questions that remain unanswered in this area. Start with a broader question, and include at least three questions that could address the larger question in smaller parts.
+
+Return a JSON object containing a "field" (string) and "questions" (array of strings). Only the JSON please.
+        </content>
+    </action>
+
+    <action type="python" id="install_scipy">
+        <content>pip install scipy</content>
+    </action>
+    
+    <action type="python" id="generate_diverse_perspectives" depends_on="define_novel_area" format="json">
+        <content>
+import json
+try:
+    field = json.loads(outputs["define_novel_area"]["raw_response"])["field"]
+    questions = json.loads(outputs["define_novel_area"]["raw_response"])["questions"]
+    question_strings = "\\n".join(questions)
+    prompt = f"""
+You are an AI Prompt Engineer. Below is your field and a list of questions. You must write three distinct personas that will be used to address these questions. Make the personas as diverse as possible so the LLMs generate diverse and unexpected outputs. Aim for a name, background in the field, and approach for the questions. Do NOT actually answer the questions -- simply identify an approach they would take.
+
+Field: {field}
+Questions:
+{question_strings}
+
+Example:
+```json
+[
+    {{
+        "persona_name": "Dr. Anya Sharma",
+        "background": "Cultural Anthropologist specializing in digital communities and online behavior.",
+        "approach": "Analyze the interactions and community dynamics from an anthropological perspective, focusing on how shared norms and values are established and maintained in the absence of physical co-presence. Focus on how digital communities establish and maintain these social norms."
+    }},
+    {{
+        "persona_name": "Kenji Tanaka",
+        "background": "Software Engineer with experience in developing decentralized systems and blockchain technology.",
+        "approach": "Investigate the technical aspects of building and maintaining decentralized autonomous organizations (DAOs) and their potential for fostering trust among anonymous collaborators. The approach involves looking at how transparency and verifiability in code and data can minimize the need for traditional forms of trust."
+    }},
+    {{
+        "persona_name": "Isabelle Dubois",
+        "background": "Philosopher specializing in Ethics.",
+        "approach": "Critically assess the ethical and philosophical dimensions of DAOs, including the impact on human agency, responsibility, and the nature of individual and collective identities."
+    }}
+]
+```
+"""
+    print(prompt)
+    print(json.dumps(json.loads(prompt))) #output JSON for the next steps
+except Exception as e:
+    print(json.dumps({"error": str(e)}))
+</content>
+    </action>
+    <action type="reasoning" id="reason_persona_1" model="openai/gpt-4o" depends_on="generate_diverse_perspectives,define_novel_area" format="json">
+        <content>
+You are a super-intelligent AI tasked with reasoning. Please provide your analysis of the first persona in response to these questions. First, the persona and field:
+Persona: {{json.loads(outputs.generate_diverse_perspectives.raw_response)[0]}}
+Field: {{outputs.define_novel_area.raw_response}}
+Questions: {{json.loads(outputs.define_novel_area.raw_response)["questions"]}}
+
+Now, given the information, answer the questions in the field with regards to the persona's background and approach. You must include a discussion of at least 500 words. Please be as thorough as possible.
+
+Return JSON only. Include "Analysis" inside the JSON only.
+</content>
+    </action>
+    <action type="reasoning" id="reason_persona_2" model="openai/gpt-4o" depends_on="generate_diverse_perspectives,define_novel_area" format="json">
+        <content>
+You are a super-intelligent AI tasked with reasoning. Please provide your analysis of the second persona in response to these questions. First, the persona and field:
+Persona: {{json.loads(outputs.generate_diverse_perspectives.raw_response)[1]}}
+Field: {{outputs.define_novel_area.raw_response}}
+Questions: {{json.loads(outputs.define_novel_area.raw_response)["questions"]}}
+
+Now, given the information, answer the questions in the field with regards to the persona's background and approach You must include a discussion of at least 500 words. Please be as thorough as possible. Ensure you answer the questions given the persona's stated approach.
+
+Return JSON only. Include "Analysis" inside the JSON only.
+</content>
+    </action>
+    <action type="reasoning" id="reason_persona_3" model="openai/gpt-4o" depends_on="generate_diverse_perspectives,define_novel_area" format="json">
+        <content>
+You are a super-intelligent AI tasked with reasoning. Please provide your analysis of the third persona in response to these questions. First, the persona and field:
+Persona: {{json.loads(outputs.generate_diverse_perspectives.raw_response)[2]}}
+Field: {{outputs.define_novel_area.raw_response}}
+Questions: {{json.loads(outputs.define_novel_area.raw_response)["questions"]}}
+
+Now, given the information, answer the questions in the field with regards to the persona's background and approach. You must include a discussion of at least 500 words. Ensure you answer the questions given the persona's stated approach.
+
+Return JSON only. Include "Analysis" inside the JSON only.
+</content>
+    </action>
+
+    <action type="reasoning" id="synthesize_results" model="anthropic/claude-3.5-sonnet" depends_on="reason_persona_1,reason_persona_2,reason_persona_3,define_novel_area,generate_diverse_perspectives">
+        <content>
+You are an expert synthesist. Please create a cohesive academic report that analyzes the question proposed in define_novel_area but leverages the input from all different personas and answers.
+Here is the initial query: {{outputs.define_novel_area.raw_response}}
+Here are the personas and approaches: {{outputs.generate_diverse_perspectives.raw_response}}
+Here are the answers:
+Persona 1: {{outputs.reason_persona_1.raw_response}}
+Persona 2: {{outputs.reason_persona_2.raw_response}}
+Persona 3: {{outputs.reason_persona_3.raw_response}}
+
+You must create a well-written report of length 2-3 pages. Please integrate the data from the various personas effectively, creating a coherent and well-written document. Do NOT introduce the personas directly. Instead, just bring in the data and ideas.
+</content>
+    </action>
+
+    <action type="python" id="save_report" depends_on="synthesize_results">
+        <content>
+import datetime
+import json
+
+try:
+    report = outputs["synthesize_results"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"novel_research_{timestamp}.md"
+
+    with open(filename, "w") as f:
+        f.write(report)
+
+    print(f"Report saved to {filename}")
+except Exception as e:
+    print(json.dumps({"error":f"Error saving report: {e}"})) #output JSON
+</content>
+    </action>
+</actions>

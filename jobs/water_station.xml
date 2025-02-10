@@ -1,0 +1,50 @@
+<actions>
+    <action type="bash" id="install_requests">
+        <content>pip install requests</content>
+    </action>
+
+    <action type="python" id="fetch_station_details" depends_on="install_requests">
+        <content>
+import requests
+
+url = "https://apps.ecology.wa.gov/continuousflowandwq/StationDetails?sta=28B080"
+
+try:
+    response = requests.get(url)
+    response.raise_for_status()
+    print(response.content)
+
+except requests.exceptions.RequestException as e:
+    print(f"Error: {e}")
+</content>
+    </action>
+
+    <action type="reasoning" id="analyze_station_data" model="google/gemini-2.0-flash-001" depends_on="fetch_station_details">
+        <content>
+You are an expert at extracting data from web pages.
+
+Analyze the following HTML content from a water quality monitoring station. Identify and summarize all relevant information, including station name, location, parameters measured, and any available data.
+
+The HTML content is below:
+
+{{outputs.fetch_station_details.raw_response}}
+</content>
+    </action>
+        <action type="python" id="save_report_1" depends_on="analyze_station_data">
+        <content>
+import datetime
+
+try:
+    report = outputs["analyze_station_data"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"Washougal_Water_Analysis{timestamp}.md"
+
+    with open(filename, "w") as f:
+        f.write(report)
+
+    print(f"Report saved to {filename}")
+except Exception as e:
+    print(f"Error saving report: {e}")
+</content>
+    </action>
+</actions>

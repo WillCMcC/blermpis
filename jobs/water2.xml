@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<actions>
+    <action type="python" id="fetch_water_data">
+        <content>
+import requests
+import datetime
+import json
+
+station_id = "28B080"
+data_types = ["DSG", "STG", "WTM", "ATM"]
+current_year = datetime.datetime.now().year
+start_year = current_year - 1
+
+all_data = {}
+
+for data_type in data_types:
+    all_data[data_type] = {}
+    # Fetch current data
+    current_url = f"https://apps.ecology.wa.gov/ContinuousFlowAndWQ/StationData/Prod/{station_id}/{station_id}_{data_type}_FM.TXT"
+    try:
+        print("current_url")
+        print(current_url)
+        response = requests.get(current_url, timeout=10)
+        response.raise_for_status()
+        all_data[data_type]["current"] = response.text
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching current {data_type} data: {e}")
+        all_data[data_type]["current"] = f"Error: {e}"
+
+    # Fetch historical data for the last 10 years
+    all_data[data_type]["historical"] = {}
+    for year in range(start_year, current_year):
+        historical_url = f"https://apps.ecology.wa.gov/ContinuousFlowAndWQ/StationData/Prod/{station_id}/{station_id}_{year}_{data_type}_FM.TXT"
+        try:
+            print("historical_url")
+            print(historical_url)
+            response = requests.get(historical_url, timeout=10)
+            response.raise_for_status()
+            all_data[data_type]["historical"][year] = response.text
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching historical {data_type} {year} data: {e}")
+            all_data[data_type]["historical"][year] = f"Error: {e}"
+
+# Print all data to standard output for gemini to use. Using json for proper formatting/parsing.
+print(json.dumps(all_data))
+</content>
+    </action>
+
+    <action type="reasoning" id="synthesize_report" model="google/gemini-2.0-flash-001" depends_on="fetch_water_data">
+        <content>
+You are a water quality expert. You have been provided with data from a water monitoring station.
+Your job is to generate a concise report discussing the current and historical trends for different water parameters. Focus on critical observations and actionable insights.
+
+The station ID is 28B080.  The data covers the last 10 years.
+The following parameters are logged:
+DSG: Discharge/Stream Gage
+STG: Stage/Gage height
+WTM: Water Temperature
+ATM: Air Temperature
+
+Data is provided in the following JSON format:
+```json
+{{outputs.fetch_water_data.raw_response}}
+```
+
+Each datapoint is the literal text retrieved from the Washington State Department of Ecology website when it is queried for station ID 28B080. The data is a dictionary where:
+- Keys are data types (DSG, STG, WTM, ATM).
+- Each data type has "current" and "historical" keys.
+- "current" holds the latest data.
+- "historical" holds data for each year over the last 10 years.
+
+Your report must include but is not limited to:
+
+1.  **Executive Summary:** Briefly summarize key findings and any significant concerns.
+2.  **Current Readings Analysis:**
+    *   State the most recent readings for each parameter (DSG, STG, WTM, ATM).
+    *   Identify any readings that deviate significantly from expected values or historical norms and warrant further investigation. Explain *why* they are concerning.
+3.  **Historical Trend Analysis (Last 10 Years):**
+    *   Describe the overall trends for each parameter (DSG, STG, WTM, ATM).  Are they increasing, decreasing, or stable?
+    *   Highlight any notable patterns, anomalies, or significant fluctuations in the historical data.
+    *   Avoid simply stating the data; provide meaningful interpretation (e.g., "Water temperature has been steadily increasing over the past decade, potentially impacting aquatic life.").
+4.  **Community Impact:**
+    *   Explain how the station's data can be valuable to the community.
+    *   Provide specific examples of how the data can be used for informed decision-making, resource management, or public awareness (e.g., "This data can help local farmers optimize irrigation practices," or "The data can be used to alert the community to potential flood risks.").
+
+**Conciseness:** Keep the report brief and to the point. Focus on the most important information.
+**Actionable Insights:** Prioritize insights that lead to potential actions or further investigation.
+        </content>
+    </action>
+
+    <action type="python" id="save_report" depends_on="synthesize_report">
+        <content>
+import datetime
+
+try:
+    report = outputs["synthesize_report"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"water_station_report_{timestamp}.md"
+
+    with open(filename, "w") as f:
+        f.write(f"# Water Station Report (Station ID: 28B080) - {timestamp}\n\n{report}")
+
+    print(f"Report saved to {filename}")
+except Exception as e:
+    print(f"Error saving report: {e}")
+</content>
+    </action>
+</actions>

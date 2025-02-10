@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<actions>
+    <action type="reasoning" id="kernel_guide_outline" model="google/gemini-2.0-flash-001" format="json">
+        <content>
+You are an expert technical writer with deep knowledge of the Linux kernel. Generate a detailed table of contents for a comprehensive guide to the Linux kernel, targeting experienced software engineers and computer science students. The guide should explain the core subsystems and architecture of the kernel. Include a minimum of 10 sections with sub-sections for each. Focus on maintainability and readability. Include the relevant directory structure to explain the major subsystems and their organization.
+
+The structure should be expressed as a JSON object with a "title" and a "sections" array where each section has a "title" and optionally a "subsections" array.  The final section should include a resources section with links to the source code repository to view. Sample format below:
+
+```json
+{
+  "title": "The Linux Kernel: A Comprehensive Guide",
+  "sections": [
+    {
+      "title": "Introduction to the Linux Kernel",
+      "subsections": [
+        {
+          "title": "What is the Linux Kernel?"
+        },
+        {
+          "title": "Kernel Architecture"
+        }
+      ]
+    },
+    {
+      "title": "Process Management",
+      "subsections":[
+        {
+          "title": "Scheduling"
+        }
+      ]
+    }
+  ]
+}
+```
+        </content>
+    </action>
+
+   <action type="reasoning" id="introduction_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Introduction to the Linux Kernel" section. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Use simple language so that the document is easy to read and understand. Do not include code snippets in introduction.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+   <action type="reasoning" id="process_management_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Process Management" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. Assume that they are well-versed in computer science topics, specifically the Scheduler. The length should be around 1500-2000 words. Reference source code locations when appropriate.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+    
+    <action type="reasoning" id="memory_management_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Memory Management" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate, assume they understand fundamental memory management concepts. Explain kernel-specific aspects.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+     <action type="reasoning" id="virtual_filesystem_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Virtual Filesystem (VFS)" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Assume they understand fundamental VFS concepts.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="device_drivers_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Device Drivers" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Explain the device driver model with the concepts of character and block devices. Explain sysfs, udev.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="networking_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Networking" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Focus on the kernel's networking stack.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="security_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Security" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Focus on kernel security features like SELinux, AppArmor, namespaces, and capabilities.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="interrupt_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Interrupt Handling" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Explain the use of Interrupts and exception handling in the linux kernel. What happens when the processor encounters an interrupt. What IRQ lines can be used for.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="locking_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Locking Mechanisms" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Explain Mutex, Semaphores, Spinlocks.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="tracing_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Tracing and Debugging" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Explain ftrace, perf and other methods available to debug problems within the Linux kernel.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="resources_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Resources and Further Reading" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 500-750 words. Provide links to the source code repository, documentation, and related projects. Explain how to access different revision controlled branches within the linux kernel. For what reasons would the use of those branches be for.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+    
+    <action type="python" id="assemble_guide" depends_on="kernel_guide_outline,introduction_content,process_management_content,memory_management_content,virtual_filesystem_content,device_drivers_content,networking_content,security_content,interrupt_content,locking_content,tracing_content,resources_content">
+        <content>
+import json
+import markdown
+import datetime
+
+try:
+    guide_outline = json.loads(outputs["kernel_guide_outline"]["raw_response"])
+    introduction = outputs["introduction_content"]["raw_response"]
+    process_management = outputs["process_management_content"]["raw_response"]
+    memory_management = outputs["memory_management_content"]["raw_response"]
+    vfs = outputs["virtual_filesystem_content"]["raw_response"]
+    device_drivers = outputs["device_drivers_content"]["raw_response"]
+    networking = outputs["networking_content"]["raw_response"]
+    security = outputs["security_content"]["raw_response"]
+    interrupt = outputs["interrupt_content"]["raw_response"]
+    locking = outputs["locking_content"]["raw_response"]
+    tracing = outputs["tracing_content"]["raw_response"]
+    resources = outputs["resources_content"]["raw_response"]
+
+    guide_title = guide_outline["title"]
+
+    markdown_content = f"# {guide_title}\n\n" + introduction + "\n\n" + process_management + "\n\n" + memory_management + "\n\n" + vfs + "\n\n" + device_drivers + "\n\n" + networking + "\n\n" + security + "\n\n" + interrupt + "\n\n" + locking + "\n\n" + tracing + "\n\n" + resources
+    
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"linux_kernel_guide_{timestamp}.md"
+    
+    with open(filename, "w") as f:
+        f.write(markdown_content)
+
+    print(f"Linux kernel guide assembled into {filename}")
+
+except Exception as e:
+    print(f"Error assembling guide: {e}")
+</content>
+    </action>
+</actions>

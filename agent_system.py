@@ -407,7 +407,9 @@ class AgentCLI(Cmd):
                     1. Are dependencies properly declared?
                     2. Are appropriate formats (JSON/text) used?
                     3. Can steps be parallelized?
-                    4. Are error handling measures in place?
+                    4. Go step by step -- will this plan work?
+                    5. Make sure there are no unnecessary steps.
+                    6. When in doubt, save to a markdown file with a timestamp as the final job.
                     
                     Return ONLY the improved XML plan.
                 </content>

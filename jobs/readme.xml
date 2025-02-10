@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<actions>
+    <action type="python" id="read_source_code">
+        <content>
+try:
+    with open("agent_system.py", "r") as f:
+        source_code = f.read()
+    print(source_code)
+except FileNotFoundError:
+    print("Error: agent_system.py not found.")
+except Exception as e:
+    print(f"Error reading agent_system.py: {e}")
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_outline" model="google/gemini-2.0-flash-001" format="json" depends_on="read_source_code">
+        <content>
+You are an expert software engineer tasked with generating a detailed README for a Python file called "agent_system.py". The source code of the file is provided below. Based on this code, create a JSON outline for a comprehensive README.md file.
+
+The outline should include the following sections, but is not limited to:
+
+*   **Introduction:** A brief overview of what agent_system.py does.
+*   **Purpose:** What problems agent_system.py solves
+*   **Overview of actions in agent_system.py's system:**
+    *   **Action definitions:** Define important constants and datatypes
+*   **Setup** How to configure the agent system if applicable
+*   **Usage:** Examples of how to use the main functionalities with clear code examples
+*   **Dependencies:** List all required Python libraries and how to install them.
+*   **Components:** Detailed explanation of each major class and function, including their purpose, arguments, and return values. Focus on function explanations in each component
+*   **Error Handling:** How the script handles errors and exceptions.
+*   **Future Enhancements:** Potential future improvements and features.
+*   **Known Issues:** Any known limitations or bugs.
+
+Ensure the outline is well-structured and hierarchical, with clear headings and subheadings.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_introduction" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the introduction section for detailed README.md documentation.
+Your goal is to create a compelling introduction that explains the what the overall system does.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Introduction" and "Purpose" sections for the README.md, explaining what "agent_system.py" is and its what problem it attempts to solve. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_actiondefinitions" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Overview of actions/Action definitions sections for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Overview of actions/Action definition" sections based on the source code for the README.md, include definitions of data structures and constants. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_usage" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Usage section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Usage" section for the README.md, explaining with illustrative examples how to use the main modules of the system in agent_system.py. Aim for many small but meaningful examples. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_dependencies" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Dependencies section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Dependencies" section for the README.md, listing all required Python packages and providing instructions on how to install them using pip. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_components" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Components section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Components" section for the README.md, providing a detailed explanation of each class and function in agent_system.py. For each create function section include its purpose, arguments, and return values. Focus on function explanations. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_errorhandling" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Error Handling section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Error Handling" section for the README.md, explaining how the system handles errors and exceptions. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_futureenhancements" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the "Future Enhancements" section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Future Enhancements" section for the README.md, suggesting potential future improvements and features for agent_system.py. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_knownissues" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the "Known Issues" section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Known Issues" section for the README.md, listing any known limitations or bugs in agent_system.py. If there are no known issues, state that explicitly. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="combine_sections" model="google/gemini-2.0-flash-001" depends_on="generate_introduction,generate_actiondefinitions,generate_usage,generate_dependencies,generate_components,generate_errorhandling,generate_futureenhancements,generate_knownissues">
+        <content>
+You are an expert software engineer combining individual sections into a complete README.md file.  Ensure the final result is well-formatted and uses markdown.
+
+Here is the Introduction and Purpose:
+{{outputs.generate_introduction.raw_response}}
+
+Here are Action definitions:
+{{outputs.generate_actiondefinitions.raw_response}}
+
+Here is the Usage section:
+{{outputs.generate_usage.raw_response}}
+
+Here is the Dependencies section:
+{{outputs.generate_dependencies.raw_response}}
+
+Here is the Components section:
+{{outputs.generate_components.raw_response}}
+
+Here is the Error Handling section:
+{{outputs.generate_errorhandling.raw_response}}
+
+Here is the Future Enhancements section:
+{{outputs.generate_futureenhancements.raw_response}}
+
+Here is the Known Issues section:
+{{outputs.generate_knownissues.raw_response}}
+
+Combine these into a well-formatted, complete README.md file.  Pay attention to consistent formatting and a logical flow.
+</content>
+    </action>
+
+    <action type="python" id="save_readme" depends_on="combine_sections">
+        <content>
+try:
+    readme_content = outputs["combine_sections"]["raw_response"]
+    with open("README.md", "w") as f:
+        f.write(readme_content)
+    print("README.md file created successfully.")
+except Exception as e:
+    print(f"Error creating README.md: {e}")
+</content>
+    </action>
+</actions>

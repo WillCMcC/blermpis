@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<actions>
+    <action type="python" id="install_dependencies">
+        <content>
+pip install requests
+</content>
+    </action>
+
+    <!-- Yes, Madam (1985) -->
+    <action type="reasoning" id="yes_madam_synopsis_o1" model="openai/o1-mini">
+        <content>
+Provide an extremely detailed plot synopsis for the movie "Yes, Madam" (1985).  Your focus is on in-screen events. Include at least 1000 words.
+In addition to the synopsis, generate practice trivia questions with answers.
+</content>
+    </action>
+
+    <action type="reasoning" id="yes_madam_synopsis_gemini" model="google/gemini-2.0-flash-001">
+        <content>
+Provide an extremely detailed plot synopsis for the movie "Yes, Madam" (1985). Your focus is on in-screen events. Include at least 1000 words. Focus particularly on fight scenes.
+In addition to the synopsis, generate practice trivia questions with answers which refer exactly to in-screen action.
+</content>
+    </action>
+
+    <action type="reasoning" id="yes_madam_synopsis_gpt4o" model="openai/gpt-4o" >
+        <content>
+Provide an extremely detailed plot synopsis for the movie "Yes, Madam" (1985).  Your focus is on in-screen events. Include at least 1000 words, with emphasis on comedic elements.
+In addition to the synopsis, generate practice trivia questions with answers based purely on things that happen on the screen.
+</content>
+    </action>
+
+    <action type="reasoning" id="yes_madam_synopsis_claude" model="anthropic/claude-3.5-sonnet">
+        <content>
+Provide an extremely detailed plot synopsis for the movie "Yes, Madam" (1985). Be extremely,extremely detailed with at least 1000 words.  Your focus is on in-screen events. Include character descriptions and motivations. Try especially hard.
+In addition to the synopsis, generate practice trivia questions with answers about things that happen on the screen.
+</content>
+    </action>    
+
+    <action type="reasoning" id="yes_madam_combine" model="google/gemini-2.0-flash-001" depends_on="yes_madam_synopsis_o1,yes_madam_synopsis_gemini,yes_madam_synopsis_gpt4o,yes_madam_synopsis_claude">
+        <content>
+Please critically analyze the following JSON documents, each containing a plot synopsis and trivia about the movie "Yes Madam" (1985):
+{{outputs.yes_madam_synopsis_o1.raw_response}}
+{{outputs.yes_madam_synopsis_gemini.raw_response}}
+{{outputs.yes_madam_synopsis_gpt4o.raw_response}}
+{{outputs.yes_madam_synopsis_claude.raw_response}}
+
+Combine these analyses into a single, extremely detailed (2000+ words) plot synopsis, resolving any contradictions and integrating unique details/trivia from each source. The end result should be the most exhaustive and accurate summary possible. Ensure the plot synopsis emphasizes details visible on the screen, including specific actions, objects, character expressions, and fight choreography.
+</content>
+    </action>
+
+    <!-- The Stunt Woman (1996) -->
+    <action type="reasoning" id="stunt_woman_synopsis_o1" model="openai/o1-mini" >
+        <content>
+Provide an extremely detailed plot synopsis for the movie "The Stunt Woman (Ah Kam)" (1996). Your focus is on in-screen events. Include at least 1000 words.
+In addition to the synopsis, generate practice trivia questions with answers based purely on things that happen on the screen.
+</content>
+    </action>
+
+    <action type="reasoning" id="stunt_woman_synopsis_gemini" model="google/gemini-2.0-flash-001" >
+        <content>
+Provide an extremely detailed plot synopsis for the movie "The Stunt Woman (Ah Kam)" (1996). Your focus is on in-screen events. Include at least 1000 words. Focus particularly on the stunt sequences.
+In addition to the synopsis, generate practice trivia questions with answers based purely on things that happen on the screen.
+</content>
+    </action>
+
+    <action type="reasoning" id="stunt_woman_synopsis_gpt4o" model="openai/gpt-4o">
+        <content>
+Provide an extremely detailed plot synopsis for the movie "The Stunt Woman (Ah Kam)" (1996).  Your focus is on in-screen events. Include character names. Include at least 1000 words.
+In addition to the synopsis, generate practice trivia questions with answers.
+</content>
+    </action>
+
+    <action type="reasoning" id="stunt_woman_synopsis_claude" model="anthropic/claude-3.5-sonnet" >
+        <content>
+Provide an extremely detailed plot synopsis for the movie "The Stunt Woman (Ah Kam)" (1996). Be extremely, extremely detailed with at least 1000 words. Your focus is on in-screen events. Include descriptions of character relationships and motivations.
+In addition to the synopsis, generate practice trivia questions with answers .
+</content>
+    </action>
+
+    <action type="reasoning" id="stunt_woman_combine" model="google/gemini-2.0-flash-001" depends_on="stunt_woman_synopsis_o1,stunt_woman_synopsis_gemini,stunt_woman_synopsis_gpt4o,stunt_woman_synopsis_claude" >
+        <content>
+Please critically analyze the following JSON documents, each containing a plot synopsis and trivia about the movie "The Stunt Woman (Ah Kam)" (1996):
+{{outputs.stunt_woman_synopsis_o1.raw_response}}
+{{outputs.stunt_woman_synopsis_gemini.raw_response}}
+{{outputs.stunt_woman_synopsis_gpt4o.raw_response}}
+{{outputs.stunt_woman_synopsis_claude.raw_response}}
+
+Combine these analyses into a single, extremely detailed (2000+ words) plot synopsis, resolving any contradictions and integrating unique details/trivia from each source. The end result should be the most exhaustive and accurate summary possible. Focus on detailed analysis of in-screen events.
+</content>
+    </action>
+    
+    <!-- Police Story 3: Supercop (1992) -->
+    <action type="reasoning" id="police_story_3_synopsis_o1" model="openai/o1-mini" >
+        <content>
+Provide an extremely detailed plot synopsis for the movie "Police Story 3: Supercop" (1992). Your focus is on in-screen events. Include at least 1000 words.
+In addition to the synopsis, generate practice trivia questions with answers based purely on things that happen on the screen.
+</content>
+    </action>
+
+    <action type="reasoning" id="police_story_3_synopsis_gemini" model="google/gemini-2.0-flash-001">
+        <content>
+Provide an extremely detailed plot synopsis for the movie "Police Story 3: Supercop" (1992). Your focus is on in-screen events. Include character names. Include at least 1000 words. Prioritize detail about fight scenes and stunts.
+In addition to the synopsis, generate practice trivia questions with answers based purely on things that happen on the screen.
+</content>
+    </action>
+
+    <action type="reasoning" id="police_story_3_synopsis_gpt4o" model="openai/gpt-4o" >
+        <content>
+Provide an extremely detailed plot synopsis for the movie "Police Story 3: Supercop" (1992). Characters' motivations can be stated as hypotheses. Your focus is on in-screen events. Be extremely,extremely detailed with at least 1000.
+In addition to the synopsis, generate practice trivia questions with answers.
+</content>
+    </action>
+
+    <action type="reasoning" id="police_story_3_synopsis_claude" model="anthropic/claude-3.5-sonnet">
+        <content>
+Provide an extremely detailed plot synopsis for the movie "Police Story 3: Supercop" (1992). Your focus is on in-screen events. Go wild with the detail. Include at least 1000 words.
+In addition to the synopsis, generate practice trivia questions with answers based purely on things that happen on the screen.
+</content>
+    </action>
+
+    <action type="reasoning" id="police_story_3_combine" model="google/gemini-2.0-flash-001" depends_on="police_story_3_synopsis_o1,police_story_3_synopsis_gemini,police_story_3_synopsis_gpt4o,police_story_3_synopsis_claude" >
+        <content>
+Please critically analyze the following JSON documents, each containing a plot synopsis and trivia about the movie "Police Story 3: Supercop" (1992):
+{{outputs.police_story_3_synopsis_o1.raw_response}}
+{{outputs.police_story_3_synopsis_gemini.raw_response}}
+{{outputs.police_story_3_synopsis_gpt4o.raw_response}}
+{{outputs.police_story_3_synopsis_claude.raw_response}}
+
+Combine these analyses into a single, extremely detailed (2000+ words) plot synopsis, resolving any contradictions and integrating unique details/trivia from each source. The end result should be the most exhaustive and accurate summary possible. Focus on detailed analysis of in-screen events including stunt and fight details.
+</content>
+    </action>
+    
+    <!-- The Heroic Trio (1993) -->
+    <action type="reasoning" id="heroic_trio_synopsis_o1" model="openai/o1-mini" >
+        <content>
+Provide an extremely detailed plot synopsis for the movie "The Heroic Trio" (1993). Your focus is on in-screen events. The emphasis should be on visual details. Be extremely,extremely detailed with at least 1000 words.
+In addition to the synopsis, generate practice trivia questions with answers based purely on things that happen on the screen.
+
+
+</content>
+    </action>
+
+    <action type="reasoning" id="heroic_trio_synopsis_gemini" model="google/gemini-2.0-flash-001">
+        <content>
+Provide an extremely detailed plot synopsis for the movie "The Heroic Trio" (1993). Your focus is on in-screen events. List the weapons that the heroines frequently use. Be extremely,extremely detailed with at least 1000 words.
+In addition to the synopsis, generate practice trivia questions with answers based purely on things that happen on the screen.
+</content>
+    </action>
+
+    <action type="reasoning" id="heroic_trio_synopsis_gpt4o" model="openai/gpt-4o">
+        <content>
+Provide an extremely detailed plot synopsis for the movie "The Heroic Trio" (1993). Your focus is on in-screen events. Be extremely,extremely detailed with at least 1000 words.
+In addition to the synopsis, generate practice trivia questions with answers.
+</content>
+    </action>
+
+    <action type="reasoning" id="heroic_trio_synopsis_claude" model="anthropic/claude-3.5-sonnet" >
+        <content>
+Provide an extremely detailed plot synopsis for the movie "The Heroic Trio" (1993). Go wild with the detail!. Your focus is on in-screen events. Be extremely,extremely detailed with at least 1000 words.
+In addition to the synopsis, generate practice trivia questions with answers based purely on things that happen on the screen.
+</content>
+    </action>
+
+    <action type="reasoning" id="heroic_trio_combine" model="google/gemini-2.0-flash-001" depends_on="heroic_trio_synopsis_o1,heroic_trio_synopsis_gemini,heroic_trio_synopsis_gpt4o,heroic_trio_synopsis_claude" >
+        <content>
+Please critically analyze the following JSON documents, each containing a plot synopsis and trivia about the movie "The Heroic Trio" (1993):
+{{outputs.heroic_trio_synopsis_o1.raw_response}}
+{{outputs.heroic_trio_synopsis_gemini.raw_response}}
+{{outputs.heroic_trio_synopsis_gpt4o.raw_response}}
+{{outputs.heroic_trio_synopsis_claude.raw_response}}
+
+Combine these analyses into a single, extremely detailed (2000+ words) plot synopsis, resolving any contradictions and integrating unique details/trivia from each source. The end result should be the most exhaustive and accurate summary possible. Focus extremely heavily on visual and stunt detail.
+</content>
+    </action>
+
+    <action type="python" id="save_results" depends_on="yes_madam_combine,stunt_woman_combine,police_story_3_combine,heroic_trio_combine">
+        <content>
+import datetime
+import json
+
+try:
+    yes_madam_data = outputs["yes_madam_combine"]["raw_response"]
+    stunt_woman_data = outputs["stunt_woman_combine"]["raw_response"]
+    police_story_3_data = outputs["police_story_3_combine"]["raw_response"]
+    heroic_trio_data = outputs["heroic_trio_combine"]["raw_response"]
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"movie_synopses_{timestamp}.md"
+
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(f"# Movie Synopses - {timestamp}\n\n")
+
+        f.write(f"# Yes Madam\n\n")
+        f.write(f"## {yes_madam_data}\n")
+
+        f.write(f"# Stunt Woman\n\n")
+        f.write(f"## {stunt_woman_data}\n")
+
+        f.write(f"# Police Story\n\n")
+        f.write(f"## {police_story_3_data}\n")
+
+        f.write(f"# The Heroic Trio\n\n")
+        f.write(f"## {heroic_trio_data}\n")
+        
+    print(f"Results saved to {filename}")
+
+except Exception as e:
+    print(f"Error saving results: {e}")
+</content>
+    </action>
+
+</actions>
