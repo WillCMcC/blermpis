@@ -1,0 +1,253 @@
+<?xml version="1.0"?>
+<actions>
+  <action type="bash" id="install_bs4">
+        <content>pip install beautifulsoup4 requests</content>
+    </action>
+
+    <action type="python" id="fetch_google_news_rss" depends_on="install_bs4">
+        <content>
+import requests
+from bs4 import BeautifulSoup
+import json
+
+try:
+    response = requests.get("https://news.google.com/news/rss")
+    response.raise_for_status()  # Raise HTTPError for bad responses (4XX or 5XX)
+
+    soup = BeautifulSoup(response.content, "xml")
+    items = soup.find_all("item")
+    
+    news_items = []
+    for item in items:
+        title = item.find("title").text
+        link = item.find("link").text
+        news_items.append({"title": title, "link": link})
+        
+    print(json.dumps({"news_items": news_items}))
+
+except requests.exceptions.RequestException as e:
+    print(f"Error fetching or processing Google News RSS: {e}")
+    print(json.dumps({"news_items": []}))
+</content>
+    </action>
+
+    <action type="python" id="fetch_article_content" depends_on="fetch_google_news_rss">
+        <content>
+import requests
+from bs4 import BeautifulSoup
+import json
+
+try:
+    news_data = json.loads(outputs["fetch_google_news_rss"]["raw_response"])
+    news_items = news_data["news_items"]
+    
+    article_contents = []
+    for item in news_items:
+        try:
+            response = requests.get(item["link"], timeout=10)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.content, "html.parser")
+
+            # Attempt to extract article content using common tags:
+            article_text = ""
+            for p in soup.find_all(['p', 'article', 'div'], recursive=True):  # Expanded tags
+                article_text += p.get_text(strip=True) + " "  # Concatenate text from multiple elements
+
+            article_contents.append({"title":item["title"], "link": item["link"], "content": article_text})
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching article: {item['link']} - {e}")
+            article_contents.append({"title":item["title"], "link": item["link"], "content": f"Error fetching content: {e}"}) #Include error message
+        except Exception as e:
+            print(f"Error parsing article: {item['link']} - {e}") #Report errors to stout
+            article_contents.append({"title":item["title"], "link": item["link"], "content": f"Error parsing content: {e}"})
+
+    print(json.dumps({"articles": article_contents}))
+
+except json.JSONDecodeError as e:
+    print(f"Error decoding JSON: {e}")
+    print(json.dumps({"articles": []}))
+except Exception as e:
+    print(f"General error: {e}")
+    print(json.dumps({"articles": []}))
+</content>
+    </action>
+
+    <action type="reasoning" id="compile_summary" model="google/gemini-2.0-flash-001" depends_on="fetch_article_content">
+        <content>
+
+Please provide a comprehensive summary of the following documents. Note that this document may contain OCR/PDF conversion artifacts, so please interpret the content, especially numerical data and tables, with appropriate context.
+
+Google News: {{outputs.fetch_article_content.raw_response}}
+
+Requirements for the summary:
+1. Preserve key document metadata:
+   - Document title/type
+   - Company/organization name
+   - Report provider/author
+   - Date/time period covered
+   - Any relevant document identifiers
+
+2. Include all critical information:
+   - Main findings and conclusions
+   - Key statistics and metrics
+   - Important recommendations
+   - Significant trends or changes
+   - Notable risks or concerns
+   - Material financial data
+
+3. Maintain factual accuracy:
+   - Keep all numerical values precise
+   - Preserve specific dates and timeframes
+   - Retain exact names and titles
+   - Quote critical statements verbatim when necessary
+
+Please format the summary using markdown, with appropriate headers, lists, and emphasis for better readability.
+
+Note: Focus on extracting and organizing the most essential information while ensuring no critical details are omitted. Maintain the original document's tone and context in your summary.
+</content>
+    </action>
+
+    <action type="reasoning" id="compile_outline" model="google/gemini-2.0-flash-001" depends_on="compile_summary">
+        <content>
+
+Create a structured podcast outline synthesizing the following document summaries. The podcast should be 5 minutes long.
+
+Use your judgment to identify and prioritize the most important themes, findings, and insights across all documents.
+
+Available Source Documents:
+Summary: {{outputs.compile_summary.raw_response}}
+
+
+Requirements:
+1. Content Strategy
+  - Focus on the content in Target Documents, and use Context Documents as support and context
+  - Identify key debates and differing viewpoints
+  - Analyze potential audience questions/concerns
+  - Draw connections between documents and focus areas
+
+2. Structure 
+  - Create clear topic hierarchy
+  - Assign time allocations per section (based on priorities)
+  - Reference source documents using file paths
+  - Build natural narrative flow between topics
+
+3. Coverage
+  - Comprehensive treatment of Target Documents
+  - Strategic integration of Context Documents for support
+  - Supporting evidence from all relevant documents
+  - Balance technical accuracy with engaging delivery
+
+Ensure the outline creates a cohesive narrative that emphasizes the Target Documents while using Context Documents to provide additional depth and background information.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_transcript" model="anthropic/claude-3.5-sonnet" depends_on="compile_outline">
+        <content>
+Create a transcript incorporating details from the provided source material:
+
+Source Text:
+{{outputs.compile_outline.raw_response}}
+
+
+Parameters:
+- Duration: 5 minutes and 1000 words
+
+
+
+Requirements:
+1. Content Integration
+  - Reference key quotes with speaker name and institution
+  - Explain cited information in accessible terms
+  - Identify consensus and disagreements among sources
+  - Analyze reasoning behind different viewpoints
+
+2. Presentation
+  - Break down complex concepts for general audience
+  - Use relevant analogies and examples
+  - Address anticipated questions
+  - Provide necessary context throughout
+  - Maintain factual accuracy, especially with numbers
+  - Cover all focus areas comprehensively within time limit
+
+Ensure thorough coverage of each topic while preserving the accuracy and nuance of the source material.
+</content>
+    </action>
+    <action type="reasoning" id="generate_dialogue" model="anthropic/claude-3.5-sonnet" depends_on="generate_transcript">
+        <content>
+Your task is to transform the provided input transcript into an engaging and informative podcast dialogue.
+
+There are two speakers:
+
+- **Host**: Clement Dupierre, the podcast host.
+- **Guest**: Justin Davidoff, an expert on the topic.
+
+**Instructions:**
+
+- **Content Guidelines:**
+    - Present information clearly and accurately.
+    - Explain complex terms or concepts in simple language.
+    - Discuss key points, insights, and perspectives from the transcript.
+    - Include the guest's expert analysis and insights on the topic.
+    - Incorporate relevant quotes, anecdotes, and examples from the transcript.
+    - Address common questions or concerns related to the topic, if applicable.
+    - Bring conflict and disagreement into the discussion, but converge to a conclusion.
+
+- **Tone and Style:**
+    - Maintain a professional yet conversational tone.
+    - Use clear and concise language.
+    - Incorporate natural speech patterns, including occasional verbal fillers (e.g., "well," "you know")—used sparingly and appropriately.
+    - Ensure the dialogue flows smoothly, reflecting a real-life conversation.
+    - Maintain a lively pace with a mix of serious discussion and lighter moments.
+    - Use rhetorical questions or hypotheticals to engage the listener.
+    - Create natural moments of reflection or emphasis.
+    - Allow for natural interruptions and back-and-forth between host and guest.
+
+
+- **Additional Guidelines:**
+    - Mention the speakers' names occasionally to make the conversation more natural.
+    - Ensure the guest's responses are substantiated by the input text, avoiding unsupported claims.
+    - Avoid long monologues; break information into interactive exchanges.
+    - Use dialogue tags to express emotions (e.g., "he said excitedly", "she replied thoughtfully") to guide voice synthesis.
+    - Strive for authenticity. Include:
+        - Moments of genuine curiosity or surprise from the host.
+        - Instances where the guest may pause to articulate complex ideas.
+        - Appropriate light-hearted moments or humor.
+        - Brief personal anecdotes that relate to the topic (within the bounds of the transcript).
+    - Do not add new information not present in the transcript.
+    - Do not lose any information or details from the transcript.
+
+**Segment Details:**
+
+- Duration: Approximately 5 minutes and 1000 words.
+
+You should keep all analogies, stories, examples, and quotes from the transcript.
+
+**Here is the transcript:**
+
+{{outputs.generate_transcript.raw_response}}
+
+**Please transform it into a podcast dialogue following the guidelines above.**
+
+*Only return the full dialogue transcript; do not include any other information like time budget or segment names.*
+</content>
+    </action>
+
+    <action type="python" id="save_summary" depends_on="generate_dialogue">
+        <content>
+import datetime
+
+try:
+    summary = outputs["generate_dialogue"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"news_summary_transcript{timestamp}.md"
+
+    with open(filename, "w") as f:
+        f.write(f"# News Summary - {timestamp}\\n\\n{summary}")
+
+    print(f"Summary saved to {filename}")
+except Exception as e:
+    print(f"Error saving summary: {e}")
+</content>
+    </action>
+</actions>

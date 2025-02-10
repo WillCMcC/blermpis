@@ -5,7 +5,6 @@ import readline
 from agent import (
     Agent,
     Job,
-    DEEPSEEK_API_KEY,
     OPENROUTER_API_KEY,
     OPENROUTER_API_URL
 )

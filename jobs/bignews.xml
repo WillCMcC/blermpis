@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<actions>
+    <action type="bash" id="install_bs4">
+        <content>pip install beautifulsoup4 requests</content>
+    </action>
+
+    <action type="python" id="fetch_google_news_rss" depends_on="install_bs4">
+        <content>
+import requests
+from bs4 import BeautifulSoup
+import json
+
+try:
+    response = requests.get("https://news.google.com/news/rss")
+    response.raise_for_status()  # Raise HTTPError for bad responses (4XX or 5XX)
+
+    soup = BeautifulSoup(response.content, "xml")
+    items = soup.find_all("item")
+    
+    news_items = []
+    for item in items:
+        title = item.find("title").text
+        link = item.find("link").text
+        news_items.append({"title": title, "link": link})
+        
+    print(json.dumps({"news_items": news_items}))
+
+except requests.exceptions.RequestException as e:
+    print(f"Error fetching or processing Google News RSS: {e}")
+    print(json.dumps({"news_items": []}))
+</content>
+    </action>
+
+    <action type="python" id="fetch_article_content" depends_on="fetch_google_news_rss">
+        <content>
+import requests
+from bs4 import BeautifulSoup
+import json
+
+try:
+    news_data = json.loads(outputs["fetch_google_news_rss"]["raw_response"])
+    news_items = news_data["news_items"]
+    
+    article_contents = []
+    for item in news_items:
+        try:
+            response = requests.get(item["link"], timeout=10)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.content, "html.parser")
+
+            # Attempt to extract article content using common tags:
+            article_text = ""
+            for p in soup.find_all(['p', 'article', 'div'], recursive=True):  # Expanded tags
+                article_text += p.get_text(strip=True) + " "  # Concatenate text from multiple elements
+
+            article_contents.append({"title":item["title"], "link": item["link"], "content": article_text})
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching article: {item['link']} - {e}")
+            article_contents.append({"title":item["title"], "link": item["link"], "content": f"Error fetching content: {e}"}) #Include error message
+        except Exception as e:
+            print(f"Error parsing article: {item['link']} - {e}") #Report errors to stout
+            article_contents.append({"title":item["title"], "link": item["link"], "content": f"Error parsing content: {e}"})
+
+    print(json.dumps({"articles": article_contents}))
+
+except json.JSONDecodeError as e:
+    print(f"Error decoding JSON: {e}")
+    print(json.dumps({"articles": []}))
+except Exception as e:
+    print(f"General error: {e}")
+    print(json.dumps({"articles": []}))
+</content>
+    </action>
+
+    <action type="reasoning" id="summarize_articles" model="google/gemini-2.0-flash-001" depends_on="fetch_article_content">
+        <content>
+You are a world-class summarization expert. Your task is to take many article extracts and summarize them into one summarized news report that is easy to read by humans. Provide details along with all relevant URLs (if present). Aim for a 5 minute read.
+
+Here are the articles to summarize:
+{{outputs.fetch_article_content.raw_response}}
+        </content>
+    </action>
+
+    <action type="python" id="save_summary" depends_on="summarize_articles">
+        <content>
+import datetime
+
+try:
+    summary = outputs["summarize_articles"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"news_summary_{timestamp}.md"
+
+    with open(filename, "w") as f:
+        f.write(f"# News Summary - {timestamp}\n\n{summary}")
+
+    print(f"Summary saved to {filename}")
+except Exception as e:
+    print(f"Error saving summary: {e}")
+</content>
+    </action>
+</actions>

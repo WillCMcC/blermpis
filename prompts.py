@@ -40,6 +40,247 @@ When asked to produce a document, use the reasoning model to generate an outline
     - Ensure steps conform to defined data access patterns -- semantic requests for data will not be fulfilled"""
 
 PLANNING_EXAMPLES = [
+    {"role": "user", "content": "Generate an XML action plan to: Read your source code at agent_system.py and generate a README.md file for it."},
+    {"role": "user", "content": """<?xml version="1.0"?>
+<actions>
+    <action type="python" id="read_source_code">
+        <content>
+try:
+    with open("agent_system.py", "r") as f:
+        source_code = f.read()
+    print(source_code)
+except FileNotFoundError:
+    print("Error: agent_system.py not found.")
+except Exception as e:
+    print(f"Error reading agent_system.py: {e}")
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_outline" model="google/gemini-2.0-flash-001" format="json" depends_on="read_source_code">
+        <content>
+You are an expert software engineer tasked with generating a detailed README for a Python file called "agent_system.py". The source code of the file is provided below. Based on this code, create a JSON outline for a comprehensive README.md file.
+
+The outline should include the following sections, but is not limited to:
+
+*   **Introduction:** A brief overview of what agent_system.py does.
+*   **Purpose:** What problems agent_system.py solves
+*   **Overview of actions in agent_system.py's system:**
+    *   **Action definitions:** Define important constants and datatypes
+*   **Setup** How to configure the agent system if applicable
+*   **Usage:** Examples of how to use the main functionalities with clear code examples
+*   **Dependencies:** List all required Python libraries and how to install them.
+*   **Components:** Detailed explanation of each major class and function, including their purpose, arguments, and return values. Focus on function explanations in each component
+*   **Error Handling:** How the script handles errors and exceptions.
+*   **Future Enhancements:** Potential future improvements and features.
+*   **Known Issues:** Any known limitations or bugs.
+
+Ensure the outline is well-structured and hierarchical, with clear headings and subheadings.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_introduction" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the introduction section for detailed README.md documentation.
+Your goal is to create a compelling introduction that explains the what the overall system does.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Introduction" and "Purpose" sections for the README.md, explaining what "agent_system.py" is and its what problem it attempts to solve. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_actiondefinitions" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Overview of actions/Action definitions sections for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Overview of actions/Action definition" sections based on the source code for the README.md, include definitions of data structures and constants. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_usage" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Usage section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Usage" section for the README.md, explaining with illustrative examples how to use the main modules of the system in agent_system.py. Aim for many small but meaningful examples. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_dependencies" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Dependencies section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Dependencies" section for the README.md, listing all required Python packages and providing instructions on how to install them using pip. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_components" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Components section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Components" section for the README.md, providing a detailed explanation of each class and function in agent_system.py. For each create function section include its purpose, arguments, and return values. Focus on function explanations. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_errorhandling" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the Error Handling section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Error Handling" section for the README.md, explaining how the system handles errors and exceptions. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_futureenhancements" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the "Future Enhancements" section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Future Enhancements" section for the README.md, suggesting potential future improvements and features for agent_system.py. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_knownissues" model="google/gemini-2.0-flash-001" depends_on="read_source_code,generate_outline">
+        <content>
+You are an expert technical writer generating the "Known Issues" section for detailed README.md documentation.
+
+Here is the source code of agent_system.py:
+
+```python
+{{outputs.read_source_code.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_outline.raw_response}}
+```
+
+Write the "Known Issues" section for the README.md, listing any known limitations or bugs in agent_system.py. If there are no known issues, state that explicitly. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="combine_sections" model="google/gemini-2.0-flash-001" depends_on="generate_introduction,generate_actiondefinitions,generate_usage,generate_dependencies,generate_components,generate_errorhandling,generate_futureenhancements,generate_knownissues">
+        <content>
+You are an expert software engineer combining individual sections into a complete README.md file.  Ensure the final result is well-formatted and uses markdown.
+
+Here is the Introduction and Purpose:
+{{outputs.generate_introduction.raw_response}}
+
+Here are Action definitions:
+{{outputs.generate_actiondefinitions.raw_response}}
+
+Here is the Usage section:
+{{outputs.generate_usage.raw_response}}
+
+Here is the Dependencies section:
+{{outputs.generate_dependencies.raw_response}}
+
+Here is the Components section:
+{{outputs.generate_components.raw_response}}
+
+Here is the Error Handling section:
+{{outputs.generate_errorhandling.raw_response}}
+
+Here is the Future Enhancements section:
+{{outputs.generate_futureenhancements.raw_response}}
+
+Here is the Known Issues section:
+{{outputs.generate_knownissues.raw_response}}
+
+Combine these into a well-formatted, complete README.md file.  Pay attention to consistent formatting and a logical flow.
+</content>
+    </action>
+
+    <action type="python" id="save_readme" depends_on="combine_sections">
+        <content>
+try:
+    readme_content = outputs["combine_sections"]["raw_response"]
+    with open("README.md", "w") as f:
+        f.write(readme_content)
+    print("README.md file created successfully.")
+except Exception as e:
+    print(f"Error creating README.md: {e}")
+</content>
+    </action>
+</actions>"""},
     {"role": "user", "content": "Generate an XML action plan to: find me deals on Craigslist for PC hardware in Portland, Oregon"},
     {"role": "assistant", "content": """<?xml version="1.0"?>
 <actions>
@@ -93,30 +334,23 @@ You are a PC hardware expert analyzing Craigslist listings to identify the best 
 Here are the Craigslist listings:
 {{outputs.fetch_craigslist.raw_response}}
 
-Analyze all provided listings to evaluate which parts represent the best value based on current market prices. Consider the following:
+Analyze the provided listings. Output a JSON object with a "items" array containing the items. For each item, include the "title", "url", "price" as keys. Also include a key containing the number of listings analyzed. 
 
-*   **Price vs. Performance:** Prioritize components offering the best performance per dollar based on your expert knowledge of PC hardware.  Consider used prices vs new prices.
-    **Highlight the top deals based on the information provided. Provide an estimate of the parts' values if calculating full system estimates.
-*   **Avoid hallucinating any further details not provided by the Craigslist information.**
+Leave out any listings that are not for computers or computer parts, or that are obviously no good.
 
-Output a JSON object with a "top_deals" array containing the best deals. For each deal, include the "title", "url", "price", and "reason" as keys. Also include a key containing the number of listings analyzed.
 </content>
     </action>
 
     <action type="reasoning" id="write_markdown_report_1" model="anthropic/claude-3.5-sonnet" depends_on="analyze_listings_1">
         <content>
-You are an expert PC hardware reviewer. Based on the following JSON data containing information about craigslist deals, write a markdown report summarizing the best deals for building a gaming PC in Portland, Oregon. Only provide the Markdown document, no surrounding text.
+You are an expert PC hardware reviewer. Based on the following JSON data containing information about craigslist deals, write a markdown report summarizing the best deals. Only provide the Markdown document, no surrounding text. Include at least 10 items.
 
-Include an introductory paragraph explaining the methodology used (e.g., analyzing Craigslist listings for price/performance).
-
-For each of the top deals from the "top_deals" array, create a section with:
+For each of the top deals from the array, create a section with:
 
 *   The title of the listing as a header.
 *   A link to the Craigslist listing.
 *   The price.
-*   A detailed explanation of why this is a good deal, referencing specific components and their estimated market value based on expert knowledge.
-
-Conclude with any overall thoughts or warnings about buying used hardware.  Make sure the report is well-organized and easy to read.
+*   A detailed explanation of why this is a good deal.
 
 Here is the JSON data:
 {{outputs.analyze_listings_1.raw_response}}
@@ -141,7 +375,181 @@ except Exception as e:
 </content>
     </action>
 </actions>"""},
-    {"role": "user", "content": "Find out what is happening today and make me a report"},
+    {"role": "user", "content": "Generate an XML action plan to: Help me learn about the linux kernel"},
+    {"role": "assistant", "content": """<?xml version="1.0"?>
+<actions>
+    <action type="reasoning" id="kernel_guide_outline" model="google/gemini-2.0-flash-001" format="json">
+        <content>
+You are an expert technical writer with deep knowledge of the Linux kernel. Generate a detailed table of contents for a comprehensive guide to the Linux kernel, targeting experienced software engineers and computer science students. The guide should explain the core subsystems and architecture of the kernel. Include a minimum of 10 sections with sub-sections for each. Focus on maintainability and readability. Include the relevant directory structure to explain the major subsystems and their organization.
+
+The structure should be expressed as a JSON object with a "title" and a "sections" array where each section has a "title" and optionally a "subsections" array.  The final section should include a resources section with links to the source code repository to view. Sample format below:
+
+```json
+{
+  "title": "The Linux Kernel: A Comprehensive Guide",
+  "sections": [
+    {
+      "title": "Introduction to the Linux Kernel",
+      "subsections": [
+        {
+          "title": "What is the Linux Kernel?"
+        },
+        {
+          "title": "Kernel Architecture"
+        }
+      ]
+    },
+    {
+      "title": "Process Management",
+      "subsections":[
+        {
+          "title": "Scheduling"
+        }
+      ]
+    }
+  ]
+}
+```
+        </content>
+    </action>
+
+   <action type="reasoning" id="introduction_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Introduction to the Linux Kernel" section. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Use simple language so that the document is easy to read and understand. Do not include code snippets in introduction.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+   <action type="reasoning" id="process_management_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Process Management" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. Assume that they are well-versed in computer science topics, specifically the Scheduler. The length should be around 1500-2000 words. Reference source code locations when appropriate.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+    
+    <action type="reasoning" id="memory_management_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Memory Management" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate, assume they understand fundamental memory management concepts. Explain kernel-specific aspects.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+     <action type="reasoning" id="virtual_filesystem_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Virtual Filesystem (VFS)" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Assume they understand fundamental VFS concepts.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="device_drivers_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Device Drivers" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Explain the device driver model with the concepts of character and block devices. Explain sysfs, udev.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="networking_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Networking" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Focus on the kernel's networking stack.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="security_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Security" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Focus on kernel security features like SELinux, AppArmor, namespaces, and capabilities.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="interrupt_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Interrupt Handling" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Explain the use of Interrupts and exception handling in the linux kernel. What happens when the processor encounters an interrupt. What IRQ lines can be used for.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="locking_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Locking Mechanisms" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Explain Mutex, Semaphores, Spinlocks.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="tracing_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Tracing and Debugging" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 1500-2000 words. Reference source code locations when appropriate. Explain ftrace, perf and other methods available to debug problems within the Linux kernel.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+
+    <action type="reasoning" id="resources_content" model="anthropic/claude-3.5-sonnet" depends_on="kernel_guide_outline">
+        <content>
+You are an expert on the Linux kernel. Based on the following outline, write the "Resources and Further Reading" section for the Linux kernel guide. This guide assumes the reader is familiar with Linux concepts, but wants a deeper technical level of understanding. The length should be around 500-750 words. Provide links to the source code repository, documentation, and related projects. Explain how to access different revision controlled branches within the linux kernel. For what reasons would the use of those branches be for.
+
+Outline:
+{{outputs.kernel_guide_outline.raw_response}}
+        </content>
+    </action>
+    
+    <action type="python" id="assemble_guide" depends_on="kernel_guide_outline,introduction_content,process_management_content,memory_management_content,virtual_filesystem_content,device_drivers_content,networking_content,security_content,interrupt_content,locking_content,tracing_content,resources_content">
+        <content>
+import json
+import markdown
+import datetime
+
+try:
+    guide_outline = json.loads(outputs["kernel_guide_outline"]["raw_response"])
+    introduction = outputs["introduction_content"]["raw_response"]
+    process_management = outputs["process_management_content"]["raw_response"]
+    memory_management = outputs["memory_management_content"]["raw_response"]
+    vfs = outputs["virtual_filesystem_content"]["raw_response"]
+    device_drivers = outputs["device_drivers_content"]["raw_response"]
+    networking = outputs["networking_content"]["raw_response"]
+    security = outputs["security_content"]["raw_response"]
+    interrupt = outputs["interrupt_content"]["raw_response"]
+    locking = outputs["locking_content"]["raw_response"]
+    tracing = outputs["tracing_content"]["raw_response"]
+    resources = outputs["resources_content"]["raw_response"]
+
+    guide_title = guide_outline["title"]
+
+    markdown_content = f"# {guide_title}\n\n" + introduction + "\n\n" + process_management + "\n\n" + memory_management + "\n\n" + vfs + "\n\n" + device_drivers + "\n\n" + networking + "\n\n" + security + "\n\n" + interrupt + "\n\n" + locking + "\n\n" + tracing + "\n\n" + resources
+    
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"linux_kernel_guide_{timestamp}.md"
+    
+    with open(filename, "w") as f:
+        f.write(markdown_content)
+
+    print(f"Linux kernel guide assembled into {filename}")
+
+except Exception as e:
+    print(f"Error assembling guide: {e}")
+</content>
+    </action>
+</actions>"""},
+    {"role": "user", "content": "Generate an XML action plan to: Go get today's news and summarize it in a document"},
     {"role": "assistant", "content": """<?xml version="1.0"?>
 <actions>
     <action type="python" id="fetch_google_news">
@@ -247,6 +655,6 @@ JSON_SYSTEM_PROMPT = """You MUST return valid JSON:
 - If content exceeds 200 characters, provide a summary    
 - Escape special characters
 - No markdown code blocks
-- Include ALL data fields"""
+"""
 
-CONTENT_SYSTEM_PROMPT = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original. NEVER produce incomplete content -- prioritizing ending neatly before tokens run out."""
+CONTENT_SYSTEM_PROMPT = """You are a valuable part of a content production pipeline. Please produce the content specified with ZERO editorialization. Given any specifications (style, length, formatting) you must match them exactly. If asked to stitch together and format parts, do not leave out a single sentence from the original."""

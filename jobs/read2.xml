@@ -1,0 +1,414 @@
+<?xml version="1.0"?>
+<actions>
+    <action type="python" id="read_agent_source">
+        <content>
+try:
+    with open("agent.py", "r") as f:
+        agent_source = f.read()
+    print(agent_source)
+except FileNotFoundError:
+    print("Error: agent.py not found.")
+    agent_source = "" # Set to empty string to prevent downstream errors
+except Exception as e:
+    print(f"Error reading agent.py: {e}")
+    agent_source = "" # Set to empty string to prevent downstream errors
+</content>
+    </action>
+
+    <action type="python" id="read_cli_source">
+        <content>
+try:
+    with open("cli.py", "r") as f:
+        cli_source = f.read()
+    print(cli_source)
+except FileNotFoundError:
+    print("Error: cli.py not found.")
+    cli_source = "" # Set to empty string to prevent downstream errors
+except Exception as e:
+    print(f"Error reading cli.py: {e}")
+    cli_source = "" # Set to empty string to prevent downstream errors
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_readme_outline" model="google/gemini-2.0-flash-001" format="json" depends_on="read_agent_source,read_cli_source">
+        <content>
+You are an expert software engineer tasked with generating a detailed README for a project consisting of two Python files: agent.py and cli.py. Create a JSON outline for a comprehensive README.md file, prioritizing usage examples and then providing a guide to the underlying system.
+
+The outline should include the following sections, in this order:
+
+1.  **Introduction:** A brief overview of the project's purpose.
+2.  **Purpose:** What problems the project solves
+3.  **Installation:** Instructions on how to install the project and its dependencies.
+4.  **Usage:**
+    *   **Quick Start:** A simple example demonstrating basic usage.
+    *   **Advanced Examples:** More complex examples showcasing different features.
+5.  **Code and System Overview:**
+    *   **agent.py:** Detailed explanation of the `agent.py` file, including classes, functions, and their purpose.
+    *   **cli.py:** Detailed explanation of the `cli.py` file, including command-line arguments and their usage.
+6.  **Dependencies:** List all required Python libraries and how to install them.
+7.  **Error Handling:** Explanation of exceptions that could pop up, where to find more information, and who to talk to.
+8.  **Future Enhancements:** Potential future improvements and features.
+9.  **Contributing:** Guidelines for contributing to the project.
+10. **License:** Information about the project's license.
+
+Ensure the outline is well-structured and hierarchical, with clear headings and subheadings.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_introduction" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the introduction section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Introduction" and "Purpose" sections for the README.md, explaining what the project does and its purpose. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_installation" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the Installation section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Installation" section for the README.md, providing clear instructions on how to install the project and its dependencies. Assume `pip` is available, and create a `requirements.txt` file as needed. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_usage_quickstart" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the Quick Start Usage section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Usage/Quick Start" section for the README.md, demonstrating the most basic use case of the project with a clear, concise example. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_usage_advanced" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the Advanced Usage examples section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Usage/Advanced Examples" section for the README.md, showcasing more complex features and use cases of the project with detailed examples. Ensure to include markdown formatting. Create at least two examples.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_overview_agent" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the Code and System Overview for agent.py section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Code and System Overview/agent.py" section for the README.md, providing a detailed explanation of the `agent.py` file, including classes, functions, and their purpose. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_overview_cli" model="google/gemini-2.0-flash-001" depends_on="read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the Code and System Overview for cli.py section for detailed README.md documentation.
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Code and System Overview/cli.py" section for the README.md, providing a detailed explanation of the `cli.py` file, including command-line arguments and their usage. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_dependencies" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the Dependencies section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Dependencies" section for the README.md, listing all required Python packages and providing instructions on how to install them using pip. Assume pip is available. Ensure to include markdown formatting and include a clear call to action to install the requirements.
+</content>
+    </action>
+
+    <action type="python" id="create_requirements" depends_on="generate_dependencies">
+      <content>
+import re
+
+dependencies_text = outputs["generate_dependencies"]["raw_response"]
+
+# Updated regex to match a broader set of dependency installation instructions.
+match = re.search(r"(?:pip install|pip3 install) (.*)", dependencies_text)
+
+if match:
+    dependencies = match.group(1).split()
+    # Filter out any options/flags passed with the pip install command
+    dependencies = [dep for dep in dependencies if not dep.startswith('-')]
+    try:
+      with open("requirements.txt", "w") as f:
+          for dep in dependencies:
+              f.write(dep + '\n')
+      print("requirements.txt file created successfully.")
+    except Exception as e:
+      print(f"Error creating requirements.txt {e}")
+else:
+    print("Unable to parse raw_response to create requirements.txt file, please create one manually")
+      </content>
+    </action>
+
+    <action type="reasoning" id="generate_error_handling" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the Error Handling section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Error Handling" section for the README.md, explaining how the system handles errors and exceptions, and listing common errors users might encounter. Ensure to include how to view logs, common status codes, and who to contact based on the error. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_future_enhancements" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the "Future Enhancements" section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Future Enhancements" section for the README.md, suggesting potential future improvements and features for the project. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="generate_contributing" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the "Contributing" section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "Contributing" section for the README.md, providing guidelines for how others can contribute to the project. Include information on coding style, testing, and submitting pull requests. Ensure to include markdown formatting. Add a section for setting up the local environment through a Makefile.
+</content>
+    </action>
+    
+    <action type="reasoning" id="generate_license" model="google/gemini-2.0-flash-001" depends_on="read_agent_source,read_cli_source,generate_readme_outline">
+        <content>
+You are an expert technical writer generating the "License" section for detailed README.md documentation.
+
+Here is the source code of agent.py:
+
+```python
+{{outputs.read_agent_source.raw_response}}
+```
+
+Here is the source code of cli.py:
+
+```python
+{{outputs.read_cli_source.raw_response}}
+```
+
+Here is the outline for the README.md file:
+```json
+{{outputs.generate_readme_outline.raw_response}}
+```
+
+Write the "License" section for the README.md. Assume the project is under the MIT License. Include the full text of the MIT License and provide a brief explanation of what it means. Ensure to include markdown formatting.
+</content>
+    </action>
+
+    <action type="reasoning" id="combine_sections" model="google/gemini-2.0-flash-001" depends_on="generate_introduction,generate_installation,generate_usage_quickstart,generate_usage_advanced,generate_overview_agent,generate_overview_cli,generate_dependencies,generate_error_handling,generate_future_enhancements,generate_contributing,generate_license">
+        <content>
+You are an expert software engineer combining individual sections into a complete README.md file. Ensure the final result is well-formatted and uses markdown. Follow the described outline that was used to organize the content based on the various outputs for the overall README.md file. Include a table of contents at the top of the document that links to each section of the README.
+
+Here is the Introduction:
+{{outputs.generate_introduction.raw_response}}
+
+Here is the Installation section:
+{{outputs.generate_installation.raw_response}}
+
+Here is the Quick Start Usage section:
+{{outputs.generate_usage_quickstart.raw_response}}
+
+Here are the Advanced Usage examples:
+{{outputs.generate_usage_advanced.raw_response}}
+
+Here is the agent.py Code and System Overview:
+{{outputs.generate_overview_agent.raw_response}}
+
+Here is the cli.py Code and System Overview:
+{{outputs.generate_overview_cli.raw_response}}
+
+Here is the Dependencies section:
+{{outputs.generate_dependencies.raw_response}}
+
+Here is the Error Handling section:
+{{outputs.generate_error_handling.raw_response}}
+
+Here is the Future Enhancements section:
+{{outputs.generate_future_enhancements.raw_response}}
+
+Here is the Contributing section:
+{{outputs.generate_contributing.raw_response}}
+
+Here is the License section:
+{{outputs.generate_license.raw_response}}
+
+Combine these into a well-formatted, complete README.md file. Pay attention to consistent formatting and a logical flow.
+</content>
+    </action>
+
+    <action type="python" id="save_readme" depends_on="combine_sections">
+        <content>
+import datetime
+
+try:
+    readme_content = outputs["combine_sections"]["raw_response"]
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"README_{timestamp}.md"
+    with open(filename, "w") as f:
+        f.write(readme_content)
+    print(f"{filename} file created successfully.")
+except Exception as e:
+    print(f"Error creating README.md: {e}")
+</content>
+    </action>
+</actions>

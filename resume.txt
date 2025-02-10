@@ -1,0 +1,43 @@
+ Will C. McCambley
+(203)-213-4786 • Will.McCambley@gmail.com • github.com/WillCMcC
+
+Professional Summary
+Senior Software Engineer with 7+ years of experience specializing in real-time rendering systems and scalable platform solutions. Proven track record in developing high-performance visualization platforms, implementing complex image processing pipelines, and optimizing rendering performance. While my primary experience is in JavaScript/TypeScript, I have foundational knowledge of C and am eager to expand my expertise in C/C++ development.
+
+Technical Skills
+Graphics & Visualization: Browser-based Rendering Systems, Image Processing, Progressive Loading, Performance Optimization, Distributed Caching
+Programming Languages: JavaScript/TypeScript (Expert), Python, HTML/CSS, C (Basic)
+Platform Engineering: Distributed Systems, Performance Optimization, Component-based Architecture
+Infrastructure: AWS, Docker, Kubernetes, Datadog
+
+Professional Experience
+
+Senior Software Engineer | Sirona Medical
+January 2021 - Present
+Architected and implemented a high-performance rendering platform for processing and visualizing large medical imaging datasets
+Engineered a distributed image processing system handling concurrent requests with progressive loading capabilities
+Developed comprehensive 3D visualization systems for medical imaging data
+Optimized rendering performance through efficient memory management and caching strategies
+Led performance optimization initiatives resulting in significant improvements in image loading and rendering times
+Owned end-to-end platform reliability, serving as primary technical escalation point for system-wide issues
+Collaborated with customers to gather requirements and implement complex visualization features
+
+Software Engineer | Paperstreet LLC
+November 2018 - Present
+Designed and implemented full-stack platform infrastructure for rich media delivery
+Built optimized rendering systems for media display and interactive content
+Engineered reusable UI components focusing on performance and scalability
+Developed efficient content management systems with real-time updates
+
+
+Education
+Bachelor of Arts in Philosophy, Politics, and Law
+University of Southern California, Los Angeles, CA
+
+Additional Information
+Strong background in solving complex technical challenges in rendering and distributed systems
+Experience with object-oriented design principles and component-based architecture
+Proven track record of successful customer collaboration and requirement implementation
+Quick learner eager to expand expertise in C/C++ development and graphics programming
+Passionate about creating high-performance visualization solutions
+

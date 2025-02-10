@@ -17,13 +17,15 @@ from prompts import (
     CONTENT_SYSTEM_PROMPT
 )
 
-DEEPSEEK_API_KEY='sk-c4e470b3ca36497d87cabd72c79b4fcf'
-OPENROUTER_API_KEY='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'
-GROQ_API_KEY='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'
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+
+
+# env vars
+OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY')
 
 OPENROUTER_API_URL='https://openrouter.ai/api/v1'
-GROQ_API_URL='https://api.groq.com/openai/v1'
-DEEPSEEK_API_URL='https://api.deepseek.com'
 
 @dataclass
 class Job:
