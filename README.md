@@ -16,6 +16,23 @@ The project addresses several key challenges in task automation and AI interacti
 
 The system serves as a practical interface between natural language intent and concrete computational tasks, making it easier for users to accomplish complex programming and automation tasks through conversation.
 
+## Dependencies
+
+This project requires the following Python packages:
+
+```bash
+pip install openai beautifulsoup4 requests python-dotenv
+```
+
+This project requires an Openrouter API key. You can get one by signing up at [Openrouter](https://openrouter.ai/).
+
+Create a `.env` file in the project root directory with the following content:
+
+```bash
+OPENROUTER_API_KEY = "YOUR_API_KEY_HERE"
+```
+
+
 ## Files
 
 ### prompts.py
@@ -124,22 +141,6 @@ Post-execution options:
 ```
 
 The CLI will display detailed error information and allow you to add feedback to improve the plan.
-
-## Dependencies
-
-This project requires the following Python packages:
-
-```bash
-pip install openai beautifulsoup4 requests python-dotenv
-```
-
-This project requires an Openrouter API key. You can get one by signing up at [Openrouter](https://openrouter.ai/).
-
-Create a `.env` file in the project root directory with the following content:
-
-```bash
-OPENROUTER_API_KEY = "YOUR_API_KEY_HERE"
-```
 
 ### Required Packages:
 - **openai**: For interacting with the OpenAI/OpenRouter API
