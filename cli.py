@@ -359,7 +359,7 @@ class AgentCLI(Cmd):
 
         # Get user selection
         while True:
-            choice = input("\nSelect job number (or '
+            choice = input("\nSelect job number (or 'exit'): ").strip()
             if choice.lower() == 'exit':
                 return
             try:
