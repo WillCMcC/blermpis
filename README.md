@@ -1,4 +1,3 @@
-```markdown
 # AI-Powered Command-Line Interface
 
 ## Introduction
@@ -157,4 +156,3 @@ pip install -r requirements.txt
 ```
 
 Note: Make sure you have Python 3.6 or higher installed on your system.
-```
