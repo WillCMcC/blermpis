@@ -424,21 +424,55 @@ class AgentCLI(Cmd):
                 print("Please enter a valid number")
 
     def _load_history(self):
-        if self.history_file.exists():
-            try:
+        try:
+            # Ensure parent directory exists
+            self.history_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            if self.history_file.exists():
+                # Trim existing history to 500 lines
+                with open(self.history_file, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()[-500:]
+                
+                # Write back trimmed history and load
+                with open(self.history_file, 'w', encoding='utf-8') as f:
+                    f.writelines(lines)
+                
                 readline.read_history_file(str(self.history_file))
-                # Keep last 500 entries to prevent file bloat
-                readline.set_history_length(500)
-            except FileNotFoundError:
-                pass
+                
+            # Set history length and create file if missing
+            readline.set_history_length(500)
+            if not self.history_file.exists():
+                self.history_file.touch()
+                
+        except Exception as e:
+            print(f"⚠️ History load error: {str(e)}")
 
     def do_exit(self, arg):
         """Exit the CLI"""
+        print("\n")  # Ensure clean exit
+        return True
+
+    def postloop(self):
+        """Override to ensure history save on any exit"""
         try:
+            # Trim in-memory history before save
+            current_length = readline.get_current_history_length()
+            if current_length > 500:
+                readline.remove_history_item(0, current_length - 500)
+                
             readline.write_history_file(str(self.history_file))
         except Exception as e:
             print(f"⚠️ Failed to save history: {e}")
-        return True
+        finally:
+            print("Exiting...")
+
+    def precmd(self, line):
+        """Auto-save history before each command"""
+        try:
+            readline.write_history_file(str(self.history_file))
+        except Exception as e:
+            print(f"⚠️ History save error: {str(e)}")
+        return super().precmd(line)
 
 def enable_readline_history():
     readline.set_auto_history(True)
