@@ -57,14 +57,24 @@ class Agent:
                 raise ValueError(f"Action {job_id} missing content element")
                 
             content = content_element.text.strip()
-            depends_on = action.get('depends_on', '').split(',') if action.get('depends_on') else []
-            
-            # Add implicit dependencies from template variables
-            template_deps = re.findall(r'\{\{outputs\.([\w]+)[^\}]*\}\}', content)  # Capture only job ID before first dot
-            depends_on += template_deps
-            
-            # Remove duplicates and empty strings
-            depends_on = list(set([d for d in depends_on if d]))
+            depends_on = action.get('depends_on', '')
+            if depends_on:
+                # Split on commas and strip whitespace from each dependency
+                depends_on = [d.strip() for d in depends_on.split(',') if d.strip()]
+            else:
+                depends_on = []
+
+            # Modify the template dependency regex to handle spaces in IDs
+            template_deps = re.findall(r'\{\{outputs\.([^\}]+?)(?:\.|\}\})', content)
+            # Clean and validate template dependencies
+            template_deps = [
+                dep.strip()  # Remove any whitespace around the dependency ID
+                for dep in template_deps
+                if dep.strip()  # Ignore empty strings
+            ]
+
+            # Combine and deduplicate (now using sets for cleaner handling)
+            depends_on = list(set(depends_on + template_deps))
             
             # Only allow model/format for reasoning jobs
             if job_type == 'reasoning':
@@ -89,6 +99,15 @@ class Agent:
         for job in list(self.job_queue):  # Iterate copy of queue
             if job.status != 'pending':
                 continue
+            # Validate dependency IDs exist in the system
+            missing_deps = []
+            for dep in job.depends_on:
+                if dep not in self.outputs and dep not in missing_deps:
+                    missing_deps.append(dep)
+
+            if missing_deps:
+                raise ValueError(f"Job {job.id} references non-existent dependencies: {', '.join(missing_deps)}")
+
             if all(self.outputs.get(dep) not in (None, 'No response') for dep in job.depends_on):
                 try:
                     if job.type == 'bash':
