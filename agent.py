@@ -287,45 +287,82 @@ class Agent:
                     
                     # Build rich error message
                     error_lines = [
-                        "\n⚡️🔥 JOB FAILURE ANALYSIS 🔥⚡️",
-                        f"🧩 Job ID:    {job.id} ({job.type.upper()})",
-                        f"📛 Error Type: {error_details['error_type']}",
-                        f"📝 Message:    {error_details['error_msg']}",
+                        "\n🛑 JOB FAILURE DETECTED",
+                        f"┌ {'─' * 50}",
+                        f"│ 🔥 Failed Job: {job.id} ({job.type.upper()})",
+                        f"├{'─' * 50}",
+                        f"│ 📛 Error Type: {error_details['error_type']}",
+                        f"│ 📝 Message:    {error_details['error_msg']}",
                     ]
-                    
+
+                    # Add type-specific context
                     if job.type == 'bash':
                         error_lines.extend([
-                            "💻 Command Fragment:",
-                            f"   {error_details['command']}"
+                            f"├{'─' * 50}",
+                            "│ 💻 Command Context:",
+                            f"│ Exit Code: {result.returncode if 'result' in locals() else 'N/A'}",
+                            f"│ Command:   {job.content.splitlines()[0][:100]}...",
+                            "│ Common Fixes:",
+                            "│ 1. Check command exists in PATH",
+                            "│ 2. Verify file permissions",
+                            "│ 3. Ensure dependencies are installed"
                         ])
                     elif job.type == 'python':
                         error_lines.extend([
-                            "🐍 Python Traceback:",
-                            *[f"   {line}" for line in error_details['traceback'].split('\n') if line],
-                            "💻 Code Fragment:",
-                            *[f"   {line}" for line in error_details['content_snippet'].split('\n')[:3]]
+                            f"├{'─' * 50}",
+                            "│ 🐍 Python Context:",
+                            *[f"│ {line}" for line in error_details.get('traceback', '').split('\n')[-4:] if line],
+                            "│ Common Fixes:",
+                            "│ 1. Check variable names in script",
+                            "│ 2. Validate import statements",
+                            "│ 3. Test logic in isolated environment"
                         ])
                     elif job.type == 'reasoning':
                         error_lines.extend([
-                            f"🧠 Model: {job.model}",
-                            f"📤 Response Format: {job.response_format or 'text'}"
+                            f"├{'─' * 50}",
+                            "│ 🧠 AI Context:",
+                            f"│ Model:     {job.model}",
+                            f"│ Format:    {job.response_format or 'text'}",
+                            "│ Common Fixes:",
+                            "│ 1. Check API key permissions",
+                            "│ 2. Verify model supports response format",
+                            "│ 3. Simplify prompt structure"
                         ])
-                    
+
+                    # Add dependency analysis
                     if error_details['missing_deps']:
                         error_lines.extend([
-                            "🔗 Missing Dependencies:",
-                            *[f"   - {dep}" for dep in error_details['missing_deps']]
+                            f"├{'─' * 50}",
+                            "│ 🔗 Dependency Issues:",
+                            *[f"│ Missing: {dep}" for dep in error_details['missing_deps']]
                         ])
-                    
-                    if job.type == 'reasoning' and job.response_format == 'json':
+                    else:
+                        failed_deps = [dep for dep in job.depends_on if self.outputs.get(dep, {}).get('status', '') == 'failed']
+                        if failed_deps:
+                            error_lines.extend([
+                                f"├{'─' * 50}",
+                                "│ 🔗 Failed Dependencies:",
+                                *[f"│ {dep}: {self.outputs[dep].get('error', {}).get('error_msg', 'Unknown error')}" 
+                                  for dep in failed_deps]
+                            ])
+
+                    # Add JSON-specific guidance
+                    if job.response_format == 'json':
                         error_lines.extend([
-                            "📌 JSON Validation Tips:",
-                            "1. Check for trailing commas in objects/arrays",
-                            "2. Ensure all strings are properly quoted",
-                            "3. Verify response matches the exact schema requested"
+                            f"├{'─' * 50}",
+                            "│ 🗃️ JSON Validation:",
+                            "│ 1. Use jsonlint.com to validate structure",
+                            "│ 2. Check for trailing commas",
+                            "│ 3. Ensure proper string escaping",
+                            "│ Access raw response via outputs['ID']['raw_response']"
                         ])
-                    
-                    error_lines.append("="*50)
+
+                    error_lines.extend([
+                        f"├{'─' * 50}",
+                        "│ 📋 Job Content Preview:",
+                        *[f"│ {line}" for line in job.content.split('\n')[:3]],
+                        f"└{'─' * 50}"
+                    ])
                     print('\n'.join(error_lines))
                     
                     # Store error details in output
