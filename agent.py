@@ -207,7 +207,7 @@ class Agent:
 
                         api_key = OPENROUTER_API_KEY
                         if not api_key:
-                            raise ValueError("DEEPSEEK_API_KEY environment variable not set")
+                            raise ValueError("API Key environment variable not set")
                             
                         client = OpenAI(
                             api_key=OPENROUTER_API_KEY,

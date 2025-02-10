@@ -1,0 +1,205 @@
+{
+  "main": {
+    "id": "5c6a17146db2802f",
+    "type": "split",
+    "children": [
+      {
+        "id": "7a1557fd04b1b63f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "eaa1ebf8d729df51",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "reboot_windows_linux_20250210_103024.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "reboot_windows_linux_20250210_103024"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "def643df0030c676",
+    "type": "split",
+    "children": [
+      {
+        "id": "db6e60e49c743012",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4230ee3f753731ce",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "byCreatedTime",
+                "autoReveal": true
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "76df7a53629ae9eb",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "145b1e603cde3819",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 295.5
+  },
+  "right": {
+    "id": "2c7a26a0dbce64ae",
+    "type": "split",
+    "children": [
+      {
+        "id": "60182d853220948d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0b1a185c1e5af267",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "study_guide_20250207_094737.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for study_guide_20250207_094737"
+            }
+          },
+          {
+            "id": "c8e3075dd26c4b8b",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "study_guide_20250207_094737.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from study_guide_20250207_094737"
+            }
+          },
+          {
+            "id": "6d8a0fcb6ac29b7b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "8552b6a12d1e4686",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "study_guide_20250207_094737.md"
+              },
+              "icon": "lucide-list",
+              "title": "Outline of study_guide_20250207_094737"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "4230ee3f753731ce",
+  "lastOpenFiles": [
+    "news_summary_2025-02-10_10-26-15.md",
+    "reboot_windows_linux_20250210_103024.md",
+    "news_summary_transcript2025-02-09_23-00-37.md",
+    "news_summary_transcript2025-02-09_23-05-34.txt",
+    "news_summary_transcript2025-02-09_23-04-57.txt",
+    "news_summary_transcript2025-02-09_23-02-04.txt",
+    "jobs/ndum.xml",
+    "jobs/news3 copy.xml",
+    "news_summary_transcript2025-02-09_22-58-40.md",
+    "news_summary_2025-02-09_22-54-22.md",
+    "jobs/bignews.xml",
+    "news_summary_2025-02-09_22-50-10.md",
+    "news_summary_2025-02-09_22-52-36.md",
+    "news_summary_transcript2025-02-09_22-46-03.md",
+    "news_summary_transcript2025-02-09_22-43-55.md",
+    "news_summary_transcript2025-02-09_22-42-50.md",
+    "news_summary_transcript2025-02-09_22-41-52.md",
+    "news_summary_transcript2025-02-09_22-37-36.md",
+    "news_summary_transcript2025-02-09_22-34-24.md",
+    "news_summary_transcript2025-02-09_22-10-35.md",
+    "news_summary_transcript2025-02-09_22-09-09.md",
+    "news_summary_transcript2025-02-09_22-08-31.md",
+    "news_summary_2025-02-09_22-06-19.md",
+    "resume_update_2025-02-09_21-59-52.md",
+    "jobs/news3.xml",
+    "job_recommendations_2025-02-09_22-06-11.md",
+    "README_20250209_215141.md",
+    "resume.txt",
+    "news_summary_2025-02-09_21-08-08.md",
+    "Untitled.md",
+    "README.md",
+    "jobs/read2.xml",
+    "requirements.txt",
+    "craigslist_wireless_keyboard_deals_2025-02-09_16-31-09.md",
+    "novel_research_2025-02-09_16-21-26.md",
+    "novel_research_2025-02-09_16-22-45.md"
+  ]
+}

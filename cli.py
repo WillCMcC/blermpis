@@ -96,12 +96,6 @@ class AgentCLI(Cmd):
 
     def _handle_response(self):
         """Process and display results"""
-        # Add API key check first
-        if not DEEPSEEK_API_KEY:
-            print("\n❌ Missing DEEPSEEK_API_KEY environment variable")
-            print("Get an API key from https://platform.deepseek.com")
-            print("Then run: export DEEPSEEK_API_KEY=your_key_here")
-            return
             
         # Find the initial reasoning job
         initial_job = next((job for job in self.agent.job_queue if job.id == "1"), None)
@@ -114,7 +108,6 @@ class AgentCLI(Cmd):
         
         if not last_output:
             print("\n🔍 No response received - Possible API issues or empty response")
-            print("Check your DEEPSEEK_API_KEY environment variable")
             return
                 
         response_content = last_output['raw_response']
