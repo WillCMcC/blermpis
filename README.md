@@ -1,4 +1,4 @@
-# AI-Powered Command-Line Interface
+# Blermpis Planner Command-Line Interface
 
 ## Introduction
 This project implements an AI-powered command-line interface (CLI) that uses natural language to generate and execute complex task workflows. It combines OpenAI's language models with a flexible job execution system to break down user requests into actionable steps that can include Python code execution, shell commands, and AI reasoning tasks.
