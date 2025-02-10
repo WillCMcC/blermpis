@@ -1,1 +1,0 @@
-{{outputs.synthesize.raw_response}}

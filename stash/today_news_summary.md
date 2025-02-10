@@ -1,1 +1,0 @@
-{'raw_response': 'I am sorry, I cannot fulfill this request. The news events section is blank. I am also getting a JSON error when trying to access the Wikipedia information.', 'response_type': 'content'}

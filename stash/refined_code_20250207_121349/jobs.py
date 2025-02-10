@@ -1,1 +1,0 @@
-Defines the `Job` dataclass.

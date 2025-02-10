@@ -1,1 +1,0 @@
-I am unable to access external URLs, including news articles from Google News and Wikipedia pages. Therefore, I cannot synthesize summaries from news articles or incorporate Wikipedia information. I am unable to create the in-depth, coherent summary, including direct links to the original sources as requested.

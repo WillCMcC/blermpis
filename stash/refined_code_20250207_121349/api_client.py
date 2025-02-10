@@ -1,1 +1,0 @@
-Encapsulates API request logic for OpenAI and other APIs, managing authentication and request execution.

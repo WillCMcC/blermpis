@@ -1,2 +1,0 @@
-20250207_121108
-{{outputs.sharpen_prompt.raw_response}}

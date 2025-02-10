@@ -1,1 +1,0 @@
-Defines the Job dataclass for representing tasks with properties like id, type, content, and status.
