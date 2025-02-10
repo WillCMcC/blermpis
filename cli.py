@@ -1,6 +1,7 @@
 from cmd import Cmd
 from pathlib import Path
 import xml.etree.ElementTree as ET
+import readline
 from agent import (
     Agent,
     Job,
@@ -18,6 +19,8 @@ class AgentCLI(Cmd):
         self.initial_query = None
         self.feedback_history = []  # Track feedback across regenerations
         self.last_generated_plan_xml = None  # Store original XML for recall
+        self.history_file = Path.home() / ".agent_prompt_history"
+        self._load_history()
         
         # Show welcome message
         print("\n🤖 Welcome to AgentCLI!")
@@ -379,9 +382,26 @@ class AgentCLI(Cmd):
             except ValueError:
                 print("Please enter a valid number")
 
+    def _load_history(self):
+        if self.history_file.exists():
+            try:
+                readline.read_history_file(str(self.history_file))
+                # Keep last 500 entries to prevent file bloat
+                readline.set_history_length(500)
+            except FileNotFoundError:
+                pass
+
     def do_exit(self, arg):
         """Exit the CLI"""
+        try:
+            readline.write_history_file(str(self.history_file))
+        except Exception as e:
+            print(f"⚠️ Failed to save history: {e}")
         return True
 
+def enable_readline_history():
+    readline.set_auto_history(True)
+
 if __name__ == '__main__':
+    enable_readline_history()
     AgentCLI().cmdloop()
