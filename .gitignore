@@ -1,9 +1,0 @@
-.aider*
-.env
-stash/*
-*.md
-*.txt
-.agent_prompt_history
-.DS_Store
-.obsidian/*
-__pycache__/*
