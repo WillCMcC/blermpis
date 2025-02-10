@@ -1,7 +1,13 @@
 from cmd import Cmd
 from pathlib import Path
 import xml.etree.ElementTree as ET
-from agent import Agent, Job
+from agent import (
+    Agent,
+    Job,
+    DEEPSEEK_API_KEY,
+    OPENROUTER_API_KEY,
+    OPENROUTER_API_URL
+)
 
 class AgentCLI(Cmd):
     prompt = 'agent> '
